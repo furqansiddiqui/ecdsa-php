@@ -39,6 +39,23 @@ class OpenSSL
     }
 
     /**
+     * @param string $pem
+     * @param string $eol
+     * @return string|null
+     */
+    public static function pem2der(string $pem, string $eol = "\n"): ?string
+    {
+        $split = preg_split('/[-]{5}[\w\s]+[-]{5}/i', $pem);
+        $body = $split[1] ?? null;
+        if ($body) {
+            $body = implode("", explode($eol, trim($body)));
+            return base64_decode($body);
+        }
+
+        return null;
+    }
+
+    /**
      * @param Binary $privateKey
      * @return array
      */
