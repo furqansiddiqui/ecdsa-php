@@ -40,6 +40,14 @@ class PEM_Certificate extends AbstractStringType
     }
 
     /**
+     * @return string
+     */
+    public function __toString(): string
+    {
+        return $this->data;
+    }
+
+    /**
      * @param string $eol
      * @return Binary
      */
