@@ -40,7 +40,7 @@ class Secp256k1_OpenSSL extends AbstractCurve
     public function vectorFromPrivateKey(Binary $privateKey): Vector
     {
         OpenSSL::CheckExtIsLoaded();
-        $pKey = openssl_pkey_get_details(openssl_pkey_get_private(OpenSSL::Secp256k1_PrivateKeyPEM($privateKey)));
+        $pKey = openssl_pkey_get_details(openssl_pkey_get_private(OpenSSL::Secp256k1_PrivateKeyPEM($privateKey)->get()));
 
         $pKeyCurveOID = $pKey["ec"]["curve_oid"] ?? null;
         if ($pKeyCurveOID !== Secp256k1Constants::OID) {
