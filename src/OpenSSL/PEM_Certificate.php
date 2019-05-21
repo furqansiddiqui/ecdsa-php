@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace FurqanSiddiqui\ECDSA\OpenSSL;
 
+use FurqanSiddiqui\DataTypes\Base64;
 use FurqanSiddiqui\DataTypes\Binary;
 use FurqanSiddiqui\DataTypes\Buffer\AbstractStringType;
 
@@ -64,7 +65,7 @@ class PEM_Certificate extends AbstractStringType
     {
         $split = preg_split('/[-]{5}[\w\s]+[-]{5}/i', $this->data);
         $body = implode("", explode($eol, trim($split[1])));
-        return base64_decode($body);
+        return new Base64($body);
     }
 
     /**
