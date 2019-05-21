@@ -60,8 +60,8 @@ class Secp256k1_OpenSSL extends AbstractCurve
         }
 
         $vector = new Vector($this, $coords);
-        $vector->setBcNumber("prime", new BcNumber(Secp256k1Constants::PRIME));
-        $vector->setBcNumber("order", new BcNumber(Secp256k1Constants::ORDER));
+        $vector->setBcNumber("prime", BcNumber::Decode(Secp256k1Constants::PRIME));
+        $vector->setBcNumber("order", BcNumber::Decode(Secp256k1Constants::ORDER));
         return $vector;
     }
 }
