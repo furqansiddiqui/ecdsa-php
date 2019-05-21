@@ -14,7 +14,9 @@ declare(strict_types=1);
 
 namespace FurqanSiddiqui\ECDSA\OpenSSL;
 
+use FurqanSiddiqui\DataTypes\Base16;
 use FurqanSiddiqui\DataTypes\Binary;
+use FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception;
 
 /**
  * Class OpenSSL
@@ -23,46 +25,22 @@ use FurqanSiddiqui\DataTypes\Binary;
 class OpenSSL
 {
     /**
-     * @param string $data
-     * @param string $type
-     * @param string $eol
-     * @return string
+     * @throws ECDSA_Exception
      */
-    public static function der2pem(string $data, string $type = "PRIVATE KEY", string $eol = "\n"): string
+    public static function CheckExtIsLoaded(): void
     {
-        $type = strtoupper($type);
-        $pem = sprintf("-----BEGIN %s-----", $type) . $eol;
-        $pem .= chunk_split(base64_encode($data), 64, $eol);
-        $pem .= sprintf("-----END %s-----", $type) . $eol;
-
-        return $pem;
-    }
-
-    /**
-     * @param string $pem
-     * @param string $eol
-     * @return string|null
-     */
-    public static function pem2der(string $pem, string $eol = "\n"): ?string
-    {
-        $split = preg_split('/[-]{5}[\w\s]+[-]{5}/i', $pem);
-        $body = $split[1] ?? null;
-        if ($body) {
-            $body = implode("", explode($eol, trim($body)));
-            return base64_decode($body);
+        if (!extension_loaded("openssl")) {
+            throw new ECDSA_Exception('OpenSSL extension is required for ECDSA');
         }
-
-        return null;
     }
 
     /**
      * @param Binary $privateKey
-     * @return array
+     * @return PEM_Certificate
      */
-    public static function Secp256k1(Binary $privateKey): array
+    public static function Secp256k1_PrivateKeyPEM(Binary $privateKey): PEM_Certificate
     {
-        $key = sprintf("302e0201010420%sa00706052b8104000a", $privateKey->get()->base16(false));
-        $pem = self::der2pem(hex2bin($key), "EC PRIVATE KEY");
-        return openssl_pkey_get_details(openssl_pkey_get_private($pem));
+        $secp256k1_curveKey = sprintf("302e0201010420%sa00706052b8104000a", $privateKey->get()->base16(false));
+        return PEM_Certificate::fromDER(new Base16($secp256k1_curveKey), "EC PRIVATE KEY");
     }
 }

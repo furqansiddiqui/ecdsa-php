@@ -35,10 +35,12 @@ class Secp256k1_OpenSSL extends AbstractCurve
      * @param Binary $privateKey
      * @return Vector
      * @throws GenerateVectorException
+     * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception
      */
     public function vectorFromPrivateKey(Binary $privateKey): Vector
     {
-        $pKey = OpenSSL::Secp256k1($privateKey);
+        OpenSSL::CheckExtIsLoaded();
+        $pKey = openssl_pkey_get_details(openssl_pkey_get_private(OpenSSL::Secp256k1_PrivateKeyPEM($privateKey)));
 
         $pKeyCurveOID = $pKey["ec"]["curve_oid"] ?? null;
         if ($pKeyCurveOID !== Secp256k1Constants::OID) {
