@@ -48,7 +48,7 @@ class PublicKey
         $bitwise = BcBaseConvert::BaseConvert($base16y->hexits(false), 16, 2);
         $sign = substr($bitwise, -1) === "0" ? "02" : "03";
         $publicKey = Base16::Concat($base16x, $base16y)->readOnly(true);
-        $compressedPublicKey = $base16y->clone()->prepend($sign);
+        $compressedPublicKey = $base16y->clone()->prepend($sign)->readOnly(true);
         return new self($publicKey->binary(), $compressedPublicKey->binary());
     }
 
