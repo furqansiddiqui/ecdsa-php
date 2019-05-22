@@ -17,6 +17,8 @@ namespace FurqanSiddiqui\ECDSA\Curves\Secp256k1;
 use FurqanSiddiqui\BcMath\BcNumber;
 use FurqanSiddiqui\DataTypes\Binary;
 use FurqanSiddiqui\ECDSA\Curves\AbstractCurve;
+use FurqanSiddiqui\ECDSA\PublicKey;
+use FurqanSiddiqui\ECDSA\Signature;
 use FurqanSiddiqui\ECDSA\Vector;
 use FurqanSiddiqui\ECDSA\Vector\Coordinates;
 use FurqanSiddiqui\ECDSA\Vector\Generator;
@@ -32,11 +34,11 @@ class Secp256k1 extends AbstractCurve implements Secp256k1Constants
     protected const NAME = "secp256k1";
 
     /** @var BcNumber */
-    private $prime;
+    protected $prime;
     /** @var BcNumber */
-    private $order;
+    protected $order;
     /** @var Coordinates */
-    private $coords;
+    protected $coords;
 
     /**
      * Secp256k1 constructor.
@@ -44,11 +46,11 @@ class Secp256k1 extends AbstractCurve implements Secp256k1Constants
      */
     public function __construct()
     {
-        $this->prime = BcNumber::Decode(self::PRIME);
-        $this->order = BcNumber::Decode(self::ORDER);
+        $this->prime = BcNumber::fromBase16String(static::PRIME)->scale(0);
+        $this->order = BcNumber::fromBase16String(self::ORDER)->scale(0);
         $this->coords = new Coordinates();
         foreach (self::COORDINATES as $point => $num) {
-            $this->coords->set($point, BcNumber::Decode($num));
+            $this->coords->set($point, BcNumber::fromBase16String($num)->scale(0));
         }
     }
 
@@ -72,5 +74,69 @@ class Secp256k1 extends AbstractCurve implements Secp256k1Constants
         $vector->setBcNumber("prime", $this->prime);
         $vector->setBcNumber("order", $this->order);
         return $vector;
+    }
+
+    /**
+     * @param Binary $privateKey
+     * @return PublicKey
+     * @throws \FurqanSiddiqui\ECDSA\Exception\GenerateVectorException
+     * @throws \FurqanSiddiqui\ECDSA\Exception\MathException
+     */
+    public function publicKeyFromPrivateKey(Binary $privateKey): PublicKey
+    {
+        $vector = $this->vectorFromPrivateKey($privateKey);
+        return PublicKey::PublicKeyFromVector($vector);
+    }
+
+    /**
+     * @param Binary $privateKey
+     * @param Binary $msgHash
+     * @param Binary $randomK
+     * @return Signature
+     * @throws \FurqanSiddiqui\ECDSA\Exception\GenerateVectorException
+     * @throws \FurqanSiddiqui\ECDSA\Exception\MathException
+     */
+    public function sign(Binary $privateKey, Binary $msgHash, Binary $randomK): Signature
+    {
+        if ($privateKey->size()->bytes() !== 32) {
+            throw new \LengthException('Private key must be 32 bytes long');
+        } elseif ($randomK->size()->bytes() !== 32) {
+            throw new \LengthException('Value for point "K" (rand/deterministic) must be 32 bytes');
+        }
+
+        $generator = new Generator($this->prime->value(), $this->coords->get("a")->value(), $this->coords->get("b")->value());
+        $initialPoint = new Point($generator, $this->coords->x()->value(), $this->coords->y()->value(), $this->order->value());
+
+        $modulus = $this->order->value();
+        $privateKeyInt = BcNumber::Decode($privateKey->encode()->base16())->scale(0);
+        $msgHashInt = BcNumber::Decode($msgHash->encode()->base16())->scale(0);
+        $randomKInt = BcNumber::Decode($randomK->encode()->base16())->scale(0);
+        $k = $randomKInt->mod($modulus);
+        $p1 = Point::mul($k->value(), $initialPoint);
+        $r = (new BcNumber($p1->x()))->scale(0);
+        if ($r->isZero()) {
+            throw new \UnexpectedValueException('Signature point "R" is not positive');
+        }
+
+        $s = bcmul($privateKeyInt->value(), $r->value(), 0);
+        $s = bcmod(bcadd($msgHashInt->value(), $s, 0), $modulus, 0);
+        $s2 = Math::inverseMod($k->value(), $modulus);
+        $s = bcmod(bcmul($s, $s2, 0), $modulus, 0);
+        $s = (new BcNumber($s))->scale(0);
+        if ($s->isZero()) {
+            throw new \UnexpectedValueException('Signature point "S" is not positive');
+        }
+
+        // If s is less than half the curve order, invert s
+        $rightShiftedOrder = Math::rightShift($this->order->value(), 1);
+        if ($s->greaterThanOrEquals($rightShiftedOrder) || $s->isZero()) {
+            $s = $this->order->sub($s);
+        }
+
+        if (bccomp($s, $rightShiftedOrder, 0) >= 0 || bccomp($s, "0", 0) === 0) {
+            $s = bcsub($this->order->value(), $s, 0);
+        }
+
+        return new Signature($r->encode()->binary(), $s->encode()->binary());
     }
 }

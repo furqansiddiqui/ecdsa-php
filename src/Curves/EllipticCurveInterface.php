@@ -16,6 +16,7 @@ namespace FurqanSiddiqui\ECDSA\Curves;
 
 use FurqanSiddiqui\DataTypes\Binary;
 use FurqanSiddiqui\ECDSA\PublicKey;
+use FurqanSiddiqui\ECDSA\Signature;
 use FurqanSiddiqui\ECDSA\Vector;
 
 /**
@@ -45,7 +46,7 @@ interface EllipticCurveInterface
      * @param Binary $privateKey
      * @param Binary $msgHash
      * @param Binary $randomK
-     * @return mixed
+     * @return Signature
      */
-    public function sign(Binary $privateKey, Binary $msgHash, Binary $randomK);
+    public function sign(Binary $privateKey, Binary $msgHash, Binary $randomK): Signature;
 }

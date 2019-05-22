@@ -14,6 +14,8 @@ declare(strict_types=1);
 
 namespace FurqanSiddiqui\ECDSA;
 
+use FurqanSiddiqui\BcMath\BcBaseConvert;
+use FurqanSiddiqui\DataTypes\Base16;
 use FurqanSiddiqui\DataTypes\Binary;
 
 /**
@@ -26,6 +28,29 @@ class PublicKey
     private $publicKey;
     /** @var Binary */
     private $compressed;
+
+    /**
+     * @param Vector $vector
+     * @return PublicKey
+     * @throws Exception\GenerateVectorException
+     */
+    public static function PublicKeyFromVector(Vector $vector): self
+    {
+        $coords = $vector->coords();
+        if (!$coords->x()) {
+            throw new \UnexpectedValueException('ECDSA generated vector is missing "x" point');
+        } elseif (!$coords->y()) {
+            throw new \UnexpectedValueException('ECDSA generated vector is missing "y" point');
+        }
+
+        $base16x = $coords->x()->encode();
+        $base16y = $coords->y()->encode();
+        $bitwise = BcBaseConvert::BaseConvert($base16y->hexits(false), 16, 2);
+        $sign = substr($bitwise, -1) === "0" ? "02" : "03";
+        $publicKey = Base16::Concat($base16x, $base16y)->readOnly(true);
+        $compressedPublicKey = $base16y->clone()->prepend($sign);
+        return new self($publicKey->binary(), $compressedPublicKey->binary());
+    }
 
     /**
      * PublicKey constructor.

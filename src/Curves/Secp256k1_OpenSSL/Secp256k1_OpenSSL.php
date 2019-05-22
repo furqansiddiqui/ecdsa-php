@@ -16,10 +16,12 @@ namespace FurqanSiddiqui\ECDSA\Curves\Secp256k1_OpenSSL;
 
 use FurqanSiddiqui\BcMath\BcNumber;
 use FurqanSiddiqui\DataTypes\Binary;
-use FurqanSiddiqui\ECDSA\Curves\AbstractCurve;
+use FurqanSiddiqui\ECDSA\Curves\EllipticCurveInterface;
 use FurqanSiddiqui\ECDSA\Curves\Secp256k1\Secp256k1Constants;
 use FurqanSiddiqui\ECDSA\Exception\GenerateVectorException;
 use FurqanSiddiqui\ECDSA\OpenSSL\OpenSSL;
+use FurqanSiddiqui\ECDSA\PublicKey;
+use FurqanSiddiqui\ECDSA\Signature;
 use FurqanSiddiqui\ECDSA\Vector;
 use FurqanSiddiqui\ECDSA\Vector\Coordinates;
 
@@ -27,9 +29,17 @@ use FurqanSiddiqui\ECDSA\Vector\Coordinates;
  * Class Secp256k1_OpenSSL
  * @package FurqanSiddiqui\ECDSA\Curves\Secp256k1_OpenSSL
  */
-class Secp256k1_OpenSSL extends AbstractCurve
+class Secp256k1_OpenSSL implements EllipticCurveInterface
 {
-    protected const NAME = "secp256k1";
+    private const NAME = "secp256k1";
+
+    /**
+     * @return string|null
+     */
+    public function name(): ?string
+    {
+        return self::NAME;
+    }
 
     /**
      * @param Binary $privateKey
@@ -56,12 +66,29 @@ class Secp256k1_OpenSSL extends AbstractCurve
                 );
             }
 
-            $coords->set($point, BcNumber::Decode(bin2hex($value)));
+            $coords->set($point, BcNumber::fromBase16String(bin2hex($value)));
         }
 
         $vector = new Vector($this, $coords);
-        $vector->setBcNumber("prime", BcNumber::Decode(Secp256k1Constants::PRIME));
-        $vector->setBcNumber("order", BcNumber::Decode(Secp256k1Constants::ORDER));
+        $vector->setBcNumber("prime", BcNumber::fromBase16String(Secp256k1Constants::PRIME));
+        $vector->setBcNumber("order", BcNumber::fromBase16String(Secp256k1Constants::ORDER));
         return $vector;
+    }
+
+    /**
+     * @param Binary $privateKey
+     * @return PublicKey
+     * @throws GenerateVectorException
+     * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception
+     */
+    public function publicKeyFromPrivateKey(Binary $privateKey): PublicKey
+    {
+        $vector = $this->vectorFromPrivateKey($privateKey);
+        return PublicKey::PublicKeyFromVector($vector);
+    }
+
+    public function sign(Binary $privateKey, Binary $msgHash, Binary $randomK): Signature
+    {
+        // TODO: Implement sign() method.
     }
 }
