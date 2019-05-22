@@ -78,7 +78,7 @@ class PEM_Certificate extends AbstractStringType
     {
         $type = strtoupper($type);
         $pem = sprintf("-----BEGIN %s-----", $type) . $eol;
-        $pem .= chunk_split($data->get()->base64(), 64, $eol);
+        $pem .= chunk_split($data->get()->base64()->encoded(), 64, $eol);
         $pem .= sprintf("-----END %s-----", $type) . $eol;
 
         return (new self($pem, false))->readOnly(true);
