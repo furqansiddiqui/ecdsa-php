@@ -24,18 +24,19 @@ abstract class AbstractCurve implements EllipticCurveInterface
     protected const NAME = null;
 
     /** @var static */
-    protected static $instance;
+    private static $instances = [];
 
     /**
      * @return mixed
      */
     public static function getInstance()
     {
-        if (!static::$instance) {
-            static::$instance = new static();
+        $curve = get_called_class();
+        if (!isset(self::$instances[$curve])) {
+            self::$instances[$curve] = new $curve();
         }
 
-        return static::$instance;
+        return self::$instances[$curve];
     }
 
     /**
