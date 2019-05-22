@@ -20,7 +20,23 @@ namespace FurqanSiddiqui\ECDSA\Curves;
  */
 abstract class AbstractCurve implements EllipticCurveInterface
 {
+    /** @var null null|string */
     protected const NAME = null;
+
+    /** @var static */
+    private static $instance;
+
+    /**
+     * @return mixed
+     */
+    public static function getInstance()
+    {
+        if (!static::$instance) {
+            static::$instance = new static();
+        }
+
+        return static::$instance;
+    }
 
     /**
      * @return string|null

@@ -26,6 +26,11 @@ use FurqanSiddiqui\ECDSA\Vector;
 interface EllipticCurveInterface
 {
     /**
+     * @return static
+     */
+    public static function getInstance();
+
+    /**
      * @return string|null
      */
     public function name(): ?string;

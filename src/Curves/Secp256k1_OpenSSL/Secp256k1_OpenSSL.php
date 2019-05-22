@@ -16,7 +16,7 @@ namespace FurqanSiddiqui\ECDSA\Curves\Secp256k1_OpenSSL;
 
 use FurqanSiddiqui\BcMath\BcNumber;
 use FurqanSiddiqui\DataTypes\Binary;
-use FurqanSiddiqui\ECDSA\Curves\EllipticCurveInterface;
+use FurqanSiddiqui\ECDSA\Curves\AbstractCurve;
 use FurqanSiddiqui\ECDSA\Curves\Secp256k1\Secp256k1Constants;
 use FurqanSiddiqui\ECDSA\Exception\GenerateVectorException;
 use FurqanSiddiqui\ECDSA\OpenSSL\OpenSSL;
@@ -29,17 +29,9 @@ use FurqanSiddiqui\ECDSA\Vector\Coordinates;
  * Class Secp256k1_OpenSSL
  * @package FurqanSiddiqui\ECDSA\Curves\Secp256k1_OpenSSL
  */
-class Secp256k1_OpenSSL implements EllipticCurveInterface
+class Secp256k1_OpenSSL extends AbstractCurve
 {
-    private const NAME = "secp256k1";
-
-    /**
-     * @return string|null
-     */
-    public function name(): ?string
-    {
-        return self::NAME;
-    }
+    protected const NAME = "secp256k1";
 
     /**
      * @param Binary $privateKey
