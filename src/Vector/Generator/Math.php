@@ -90,6 +90,26 @@ class Math
     }
 
     /**
+     * @param string $num
+     * @param int $pos
+     * @return string
+     */
+    public static function rightShift(string $num, int $pos): string
+    {
+        return bcdiv($num, bcpow("2", strval($pos), 0), 0);
+    }
+
+    /**
+     * @param string $num
+     * @param int $pos
+     * @return string
+     */
+    public static function leftShift(string $num, int $pos): string
+    {
+        return bcmul($num, bcpow("2", strval($pos), 0), 0);
+    }
+
+    /**
      * @param $x
      * @param $y
      * @return string
