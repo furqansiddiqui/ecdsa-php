@@ -14,14 +14,11 @@ declare(strict_types=1);
 
 namespace FurqanSiddiqui\ECDSA\Curves;
 
-use FurqanSiddiqui\DataTypes\Binary;
-use FurqanSiddiqui\ECDSA\Vector;
-
 /**
  * Class AbstractCurve
  * @package FurqanSiddiqui\ECDSA\Curves
  */
-abstract class AbstractCurve
+abstract class AbstractCurve implements EllipticCurveInterface
 {
     protected const NAME = null;
 
@@ -32,10 +29,4 @@ abstract class AbstractCurve
     {
         return static::NAME;
     }
-
-    /**
-     * @param Binary $privateKey
-     * @return Vector
-     */
-    abstract public function vectorFromPrivateKey(Binary $privateKey): Vector;
 }
