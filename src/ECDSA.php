@@ -25,11 +25,10 @@ class ECDSA
 {
     /**
      * @return Secp256k1
-     * @throws Exception\GenerateVectorException
      */
     public static function Secp256k1(): Secp256k1
     {
-        return new Secp256k1();
+        return Secp256k1::getInstance();
     }
 
     /**
@@ -37,6 +36,6 @@ class ECDSA
      */
     public static function Secp256k1_OpenSSL(): Secp256k1_OpenSSL
     {
-        return new Secp256k1_OpenSSL();
+        return Secp256k1_OpenSSL::getInstance();
     }
 }
