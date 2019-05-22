@@ -15,7 +15,7 @@ declare(strict_types=1);
 namespace FurqanSiddiqui\ECDSA;
 
 use FurqanSiddiqui\BcMath\BcNumber;
-use FurqanSiddiqui\ECDSA\Curves\AbstractCurve;
+use FurqanSiddiqui\ECDSA\Curves\EllipticCurveInterface;
 use FurqanSiddiqui\ECDSA\Vector\Coordinates;
 
 /**
@@ -24,7 +24,7 @@ use FurqanSiddiqui\ECDSA\Vector\Coordinates;
  */
 class Vector
 {
-    /** @var AbstractCurve */
+    /** @var EllipticCurveInterface */
     private $curve;
     /** @var Coordinates */
     private $coords;
@@ -35,10 +35,10 @@ class Vector
 
     /**
      * Vector constructor.
-     * @param AbstractCurve $curve
+     * @param EllipticCurveInterface $curve
      * @param Coordinates|null $coords
      */
-    public function __construct(AbstractCurve $curve, ?Coordinates $coords = null)
+    public function __construct(EllipticCurveInterface $curve, ?Coordinates $coords = null)
     {
         $this->curve = $curve;
         $this->coords = $coords ? $coords : new Coordinates();
@@ -62,9 +62,9 @@ class Vector
     }
 
     /**
-     * @return AbstractCurve
+     * @return EllipticCurveInterface
      */
-    public function curve(): AbstractCurve
+    public function curve(): EllipticCurveInterface
     {
         return $this->curve;
     }
