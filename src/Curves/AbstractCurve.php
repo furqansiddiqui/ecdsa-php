@@ -24,7 +24,7 @@ abstract class AbstractCurve implements EllipticCurveInterface
     protected const NAME = null;
 
     /** @var static */
-    private static $instance;
+    protected static $instance;
 
     /**
      * @return mixed
