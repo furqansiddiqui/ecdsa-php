@@ -45,7 +45,7 @@ class PEM_Certificate extends AbstractStringType
      */
     public function __toString(): string
     {
-        return $this->data;
+        return $this->data();
     }
 
     /**
@@ -63,9 +63,9 @@ class PEM_Certificate extends AbstractStringType
      */
     public function der(string $eol = "\n"): Binary
     {
-        $split = preg_split('/[-]{5}[\w\s]+[-]{5}/i', $this->data);
+        $split = preg_split('/[-]{5}[\w\s]+[-]{5}/i', $this->data());
         $body = implode("", explode($eol, trim($split[1])));
-        return new Base64($body);
+        return (new Base64($body))->binary();
     }
 
     /**
