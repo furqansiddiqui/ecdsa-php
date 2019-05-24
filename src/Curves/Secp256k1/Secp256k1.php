@@ -133,10 +133,6 @@ class Secp256k1 extends AbstractCurve implements Secp256k1Constants
             $s = $this->order->sub($s);
         }
 
-        if (bccomp($s, $rightShiftedOrder, 0) >= 0 || bccomp($s, "0", 0) === 0) {
-            $s = bcsub($this->order->value(), $s, 0);
-        }
-
         return new Signature($r->encode()->binary(), $s->encode()->binary());
     }
 }
