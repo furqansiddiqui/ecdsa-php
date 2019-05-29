@@ -50,8 +50,8 @@ interface EllipticCurveInterface
     /**
      * @param Binary $privateKey
      * @param Binary $msgHash
-     * @param Binary $randomK
+     * @param Binary|null $randomK
      * @return Signature
      */
-    public function sign(Binary $privateKey, Binary $msgHash, Binary $randomK): Signature;
+    public function sign(Binary $privateKey, Binary $msgHash, ?Binary $randomK = null): Signature;
 }
