@@ -103,7 +103,6 @@ class Rfc6979
     /**
      * @param BcNumber $q
      * @return BcNumber
-     * @throws \Exception
      */
     public function generateK(BcNumber $q): BcNumber
     {
@@ -154,7 +153,7 @@ class Rfc6979
             $v = $v->clone()->hash()->hmac($this->algo, $k);
         }
 
-        throw new \Exception('Could not generate K as per Rfc6979');
+        throw new \LogicException('Could not generate K as per Rfc6979');
     }
 
     /**

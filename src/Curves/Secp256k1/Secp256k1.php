@@ -91,7 +91,7 @@ class Secp256k1 extends AbstractCurve implements Secp256k1Constants
     /**
      * @param Binary $privateKey
      * @param Binary $msgHash
-     * @param Binary $randomK
+     * @param Binary|null $randomK
      * @return Signature
      * @throws \FurqanSiddiqui\ECDSA\Exception\GenerateVectorException
      * @throws \FurqanSiddiqui\ECDSA\Exception\MathException
@@ -105,11 +105,13 @@ class Secp256k1 extends AbstractCurve implements Secp256k1Constants
         if ($randomK) {
             $randomK = BcNumber::Decode($randomK->encode()->base16());
         } else {
-            $randomK = new Signature\Rfc6979(
+            $rfc6979 = new Signature\Rfc6979(
                 "sha256",
                 BcNumber::Decode($msgHash->encode()->base16()),
                 BcNumber::Decode($privateKey->encode()->base16())
             );
+
+            $randomK = $rfc6979->generateK($this->order);
         }
 
         $generator = new Generator($this->prime->value(), $this->coords->get("a")->value(), $this->coords->get("b")->value());
