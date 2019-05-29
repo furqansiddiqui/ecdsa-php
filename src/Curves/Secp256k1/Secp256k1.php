@@ -98,18 +98,18 @@ class Secp256k1 extends AbstractCurve implements Secp256k1Constants
      */
     public function sign(Binary $privateKey, Binary $msgHash, ?Binary $randomK = null): Signature
     {
-        if (!$randomK) {
+        if ($privateKey->size()->bytes() !== 32) {
+            throw new \LengthException('Private key must be 32 bytes long');
+        }
+
+        if ($randomK) {
+            $randomK = BcNumber::Decode($randomK->encode()->base16());
+        } else {
             $randomK = new Signature\Rfc6979(
                 "sha256",
                 BcNumber::Decode($msgHash->encode()->base16()),
                 BcNumber::Decode($privateKey->encode()->base16())
             );
-        }
-
-        if ($privateKey->size()->bytes() !== 32) {
-            throw new \LengthException('Private key must be 32 bytes long');
-        } elseif ($randomK->size()->bytes() !== 32) {
-            throw new \LengthException('Value for point "K" (rand/deterministic) must be 32 bytes');
         }
 
         $generator = new Generator($this->prime->value(), $this->coords->get("a")->value(), $this->coords->get("b")->value());
@@ -118,8 +118,7 @@ class Secp256k1 extends AbstractCurve implements Secp256k1Constants
         $modulus = $this->order->value();
         $privateKeyInt = BcNumber::Decode($privateKey->encode()->base16())->scale(0);
         $msgHashInt = BcNumber::Decode($msgHash->encode()->base16())->scale(0);
-        $randomKInt = BcNumber::Decode($randomK->encode()->base16())->scale(0);
-        $k = $randomKInt->mod($modulus);
+        $k = $randomK->mod($modulus);
         $p1 = Point::mul($k->value(), $initialPoint);
         $r = (new BcNumber($p1->x()))->scale(0);
         if ($r->isZero()) {
