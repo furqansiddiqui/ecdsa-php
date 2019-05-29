@@ -96,8 +96,16 @@ class Secp256k1 extends AbstractCurve implements Secp256k1Constants
      * @throws \FurqanSiddiqui\ECDSA\Exception\GenerateVectorException
      * @throws \FurqanSiddiqui\ECDSA\Exception\MathException
      */
-    public function sign(Binary $privateKey, Binary $msgHash, Binary $randomK): Signature
+    public function sign(Binary $privateKey, Binary $msgHash, ?Binary $randomK = null): Signature
     {
+        if (!$randomK) {
+            $randomK = new Signature\Rfc6979(
+                "sha256",
+                BcNumber::Decode($msgHash->encode()->base16()),
+                BcNumber::Decode($privateKey->encode()->base16())
+            );
+        }
+
         if ($privateKey->size()->bytes() !== 32) {
             throw new \LengthException('Private key must be 32 bytes long');
         } elseif ($randomK->size()->bytes() !== 32) {
