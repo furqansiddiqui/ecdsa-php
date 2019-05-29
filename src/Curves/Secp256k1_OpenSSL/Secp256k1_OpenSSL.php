@@ -79,7 +79,7 @@ class Secp256k1_OpenSSL extends AbstractCurve
         return PublicKey::PublicKeyFromVector($vector);
     }
 
-    public function sign(Binary $privateKey, Binary $msgHash, Binary $randomK): Signature
+    public function sign(Binary $privateKey, Binary $msgHash, ?Binary $randomK = null): Signature
     {
         // TODO: Implement sign() method.
     }
