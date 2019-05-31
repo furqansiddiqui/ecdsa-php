@@ -1,4 +1,4 @@
-## Warning
+## :warning: Warning
 
 This lib is provided WITHOUT warranty of any kind, use it at your own risk.
 
