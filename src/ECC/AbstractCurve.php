@@ -88,6 +88,16 @@ abstract class AbstractCurve
     }
 
     /**
+     * @param $x
+     * @param $y
+     * @return Point
+     */
+    public function getPoint($x, $y): Point
+    {
+        return new Point($this, $x, $y);
+    }
+
+    /**
      * @param Base16 $privateKey
      * @return PublicKey
      */

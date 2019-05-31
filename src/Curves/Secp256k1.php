@@ -14,10 +14,13 @@ declare(strict_types=1);
 
 namespace FurqanSiddiqui\ECDSA\Curves;
 
+use FurqanSiddiqui\BcMath\BcNumber;
 use FurqanSiddiqui\DataTypes\Base16;
 use FurqanSiddiqui\ECDSA\ECC\AbstractCurve;
 use FurqanSiddiqui\ECDSA\ECC\Math;
 use FurqanSiddiqui\ECDSA\ECC\PublicKey;
+use FurqanSiddiqui\ECDSA\Signature\Rfc6979;
+use FurqanSiddiqui\ECDSA\Signature\Signature;
 
 /**
  * Class Secp256k1
@@ -134,5 +137,191 @@ class Secp256k1 extends AbstractCurve
         }
 
         return new PublicKey(new Base16(substr($publicKey, 2, 64)), new Base16(substr($publicKey, 66)));
+    }
+
+    /**
+     * @param Base16 $privateKey
+     * @param Base16 $msgHash
+     * @param Base16|null $randomK
+     * @return Signature
+     */
+    public function sign(Base16 $privateKey, Base16 $msgHash, ?Base16 $randomK = null): Signature
+    {
+        $n = $this->order();
+        $privateKeyInt = gmp_init($privateKey->hexits(), 16);
+        $msgHashInt = gmp_init($msgHash->hexits(), 16);
+
+        // use specified K or use Deterministic RNG
+        if (!$randomK) {
+            // RFC6979
+            $rfc6979 = new Rfc6979("sha256", new BcNumber(gmp_strval($msgHashInt, 10)), new BcNumber(gmp_strval($privateKeyInt, 10)));
+            $randomK = $rfc6979->generateK(new BcNumber(gmp_strval($n, 10)))->encode();
+        }
+
+        $randomKInt = gmp_init($randomK->hexits(), 16);
+
+        // First part of the signature (R).
+        $generator = $this->generator();
+        $ptR = $generator->mul($randomKInt);
+        $r = gmp_strval($ptR->x(), 16);
+        while (strlen($r) < 64) {
+            $r = "0" . $r;
+        }
+
+        // Second part of the signature (S).
+        $s = gmp_mod(gmp_mul(gmp_invert($randomKInt, $n), gmp_add($msgHashInt, gmp_mul($privateKeyInt, gmp_init($r, 16)))), $n);
+
+        // BIP 62, make sure we use the low-s value
+        if (gmp_cmp($s, gmp_div($n, 2)) === 1) {
+            $s = gmp_sub($n, $s);
+        }
+
+        // Event out hexits on S
+        $s = gmp_strval($s, 16);
+        if (strlen($s) % 2) {
+            $s = "0" . $s;
+        }
+
+        // Even out hexits on R
+        if (strlen($r) % 2) {
+            $r = "0" . $r;
+        }
+
+        return new Signature(new Base16($r), new Base16($s));
+    }
+
+    /**
+     * @param PublicKey $publicKey
+     * @param Signature $signature
+     * @param Base16 $msgHash
+     * @return bool
+     */
+    public function verify(PublicKey $publicKey, Signature $signature, Base16 $msgHash): bool
+    {
+        $G = $this->generator();
+        $R = $signature->r()->hexits();
+        $S = $signature->s()->hexits();
+        $hash = $msgHash->hexits();
+
+        $exp1 = gmp_mul(gmp_invert(gmp_init($S, 16), $this->order()), gmp_init($hash, 16));
+        $exp1Pt = $G->mul($exp1);
+        $exp2 = gmp_mul(gmp_invert(gmp_init($S, 16), $this->order()), gmp_init($R, 16));
+
+        $pubKeyPt = $this->getPoint(
+            gmp_init($publicKey->x()->hexits(), 16),
+            gmp_init($publicKey->y()->hexits(), 16)
+        );
+
+        $exp2Pt = $pubKeyPt->mul($exp2);
+        $resultPt = $exp1Pt->add($exp2Pt);
+        $resultX = gmp_strval($resultPt->x(), 16);
+        while (strlen($resultX) < 64) {
+            $resultX = "0" . $resultX;
+        }
+
+        return hash_equals(strtoupper($resultX), strtoupper($R));
+    }
+
+    /**
+     * @param Signature $signature
+     * @param Base16 $msgHash
+     * @param int $flag
+     * @return PublicKey
+     */
+    public function recoverPublicKeyFromSignature(Signature $signature, Base16 $msgHash, int $flag): PublicKey
+    {
+        $R = $signature->r()->hexits();
+        $S = $signature->s()->hexits();
+        $msgHashInt = gmp_init($msgHash->hexits(), 16);
+
+        if ($flag < 27 || $flag >= 35) {
+            throw new \InvalidArgumentException('Invalid flag');
+        }
+
+        if ($flag >= 31) {
+            $flag -= 4;
+        }
+
+        $recId = $flag - 27;
+
+        // Step 1.1
+        $x = gmp_add(gmp_init($R, 16), gmp_mul($this->order(), gmp_div_q(gmp_init($recId, 10), gmp_init(2, 10))));
+
+        // Step 1.3
+        $preY = $flag % 2 === 1 ? "02" : "03";
+        try {
+            $yPubKey = $this->getPublicKeyFromCompressed((new Base16(gmp_strval($x, 16)))->prepend($preY));
+            $y = gmp_init($yPubKey->y()->hexits(), 16);
+        } catch (\Exception $e) {
+            throw new \UnexpectedValueException('Could not retrieve public key Y');
+        }
+
+        $ptR = $this->getPoint($x, $y);
+
+        // Step 1.6.1
+        $eG = $this->generator()->mul($msgHashInt);
+        $eGY = gmp_mod(gmp_neg($eG->y()), $this->prime());
+        $eG = $this->getPoint($eG->x(), $eGY);
+        $SR = $ptR->mul(gmp_init($S, 16));
+        $SReG = $SR->add($eG);
+        $pubKey = $SReG->mul(gmp_invert(gmp_init($R, 16), $this->order()));
+        $pubKeyX = gmp_strval($pubKey->x(), 16);
+        while (strlen($pubKeyX) < 64) {
+            $pubKeyX = "0" . $pubKeyX;
+        }
+
+        $pubKeyY = gmp_strval($pubKey->y(), 16);
+        while (strlen($pubKeyY) < 64) {
+            $pubKeyY = "0" . $pubKeyY;
+        }
+
+        $publicKey = new PublicKey(new Base16($pubKeyX), new Base16($pubKeyY));
+        if ($this->verify($publicKey, $signature, $msgHash)) {
+            return $publicKey;
+        }
+
+        throw new \RuntimeException('Public key cannot be recovered with given arguments');
+    }
+
+    /**
+     * @param PublicKey $publicKey
+     * @param Signature $signature
+     * @param Base16 $msgHash
+     * @param bool $compressed
+     * @return int
+     */
+    public function findRecoveryId(PublicKey $publicKey, Signature $signature, Base16 $msgHash, bool $compressed): int
+    {
+        $matchPubKeyHex = $compressed ? $publicKey->getCompressed() : $publicKey->getUnCompressed();
+        $matchPubKeyHex = $matchPubKeyHex->hexits();
+
+        $finalFlag = 0;
+        for ($i = 0; $i < 4; $i++) {
+            $flag = 27;
+            if ($compressed === true) {
+                $flag += 4;
+            }
+
+            $flag += $i;
+            try {
+                $recoveredPubKey = $this->recoverPublicKeyFromSignature($signature, $msgHash, $flag);
+            } catch (\Exception $e) {
+            }
+
+            if (isset($recoveredPubKey)) {
+                $recPubKeyHex = $compressed ? $recoveredPubKey->getCompressed() : $recoveredPubKey->getUnCompressed();
+                $recPubKeyHex = $recPubKeyHex->hexits();
+                if (hash_equals($matchPubKeyHex, $recPubKeyHex)) {
+                    $finalFlag = $flag;
+                    break;
+                }
+            }
+        }
+
+        if ($finalFlag) {
+            return $finalFlag;
+        }
+
+        throw new \RuntimeException('Could not find valid recovery Id for signature');
     }
 }
