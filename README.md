@@ -1,28 +1,25 @@
-# ECDSA (Elliptic Curves) lib for PHP
+## Warning
 
-This lib is to generate vectors/curves for cryptocurrency libs
+This lib is provided WITHOUT warranty of any kind, use it at your own risk.
 
-### Fail-safe Computing
+# ECDSA lib for PHP
 
-Backup means of computing curves (where possible) are available as a fail-safe measure, i.e. A `Secp256k1` curve vector 
-computed using BcMath may also be computed using OpenSSL lib for comparison.
+This lib is designed to perform all ECC calculations and operations for my [**furqansiddiqui/bitcoin-php**](https://github.com/furqansiddiqui/bitcoin-php)
+lib.
 
-It means that when generating a public key from private key using `Secp256k1` curve, you may perform this action twice 
-using separate methods in this lib and then compare results as they MUST be "precise".
+## Prerequisites
 
-## Prerequisite
-
-* PHP ^7.2
+* PHP 7.2
+* ext-gmp
 * ext-bcmath
-* ext-openssl
 
 ## Installation
 
 `composer require furqansiddiqui/ecdsa-php`
 
-## Supported Curves
+### Change Log (>0.2.x)
 
-ID | Curve | Lib
----| --- | ---
-Secp256k1 | secp256k1 | BcMath
-Secp256k1_OpenSSL | secp256k1 | OpenSSL
+From v0.2.x and onwards I have dropped all previous ECC curves (`Secp256k1` via `BcMath` and `Secp256k1` via `OpenSSL`) in favour of `GMP`. 
+`BcMath` provided to be extremely slow as compared to `GMP` while performing ECC calculations. In fact, most of the code for ECC ops via `GMP` is
+taken from [BitcoinECDSA.php](https://github.com/BitcoinPHP/BitcoinECDSA.php) lib, so all appreciations, kudos 
+and thanks goes to developers and contributors over there!
