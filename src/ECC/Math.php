@@ -39,4 +39,19 @@ class Math
         $sqrt2 = gmp_mod(gmp_sub($p, $sqrt1), $p);
         return [$sqrt1, $sqrt2];
     }
+
+    public static function bcRightShift(string $num, int $pos): string
+    {
+        return bcdiv($num, bcpow("2", strval($pos), 0), 0);
+    }
+
+    /**
+     * @param string $num
+     * @param int $pos
+     * @return string
+     */
+    public static function bcLeftShift(string $num, int $pos): string
+    {
+        return bcmul($num, bcpow("2", strval($pos), 0), 0);
+    }
 }

@@ -14,8 +14,7 @@ declare(strict_types=1);
 
 namespace FurqanSiddiqui\ECDSA;
 
-use FurqanSiddiqui\ECDSA\Curves\Secp256k1\Secp256k1;
-use FurqanSiddiqui\ECDSA\Curves\Secp256k1_OpenSSL\Secp256k1_OpenSSL;
+use FurqanSiddiqui\ECDSA\Curves\Secp256k1;
 
 /**
  * Class ECDSA
@@ -29,13 +28,5 @@ class ECDSA
     public static function Secp256k1(): Secp256k1
     {
         return Secp256k1::getInstance();
-    }
-
-    /**
-     * @return Secp256k1_OpenSSL
-     */
-    public static function Secp256k1_OpenSSL(): Secp256k1_OpenSSL
-    {
-        return Secp256k1_OpenSSL::getInstance();
     }
 }

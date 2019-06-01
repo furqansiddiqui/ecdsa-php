@@ -17,7 +17,7 @@ namespace FurqanSiddiqui\ECDSA\Signature;
 use FurqanSiddiqui\BcMath\BcNumber;
 use FurqanSiddiqui\DataTypes\Binary;
 use FurqanSiddiqui\DataTypes\Bitwise;
-use FurqanSiddiqui\ECDSA\Vector\Generator\Math;
+use FurqanSiddiqui\ECDSA\ECC\Math;
 
 /**
  * PHP implementation of RFC6979 deterministic DSA
@@ -73,7 +73,7 @@ class Rfc6979
         $v = BcNumber::Decode($in->base16());
 
         if ($vLen > $qLen) {
-            $v = Math::rightShift($v->value(), $vLen - $qLen);
+            $v = Math::bcRightShift($v->value(), $vLen - $qLen);
         }
 
         return $v;

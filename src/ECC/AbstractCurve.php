@@ -18,7 +18,7 @@ use FurqanSiddiqui\DataTypes\Base16;
  * Class AbstractCurve
  * @package FurqanSiddiqui\ECDSA\ECC
  */
-abstract class AbstractCurve
+abstract class AbstractCurve implements EllipticCurveInterface
 {
     public const A = null;
     public const B = null;
@@ -35,6 +35,22 @@ abstract class AbstractCurve
     private $prime;
     /** @var \GMP */
     private $order;
+
+    /** @var static */
+    private static $instances = [];
+
+    /**
+     * @return mixed
+     */
+    public static function getInstance()
+    {
+        $curve = get_called_class();
+        if (!isset(self::$instances[$curve])) {
+            self::$instances[$curve] = new $curve();
+        }
+
+        return self::$instances[$curve];
+    }
 
     /**
      * AbstractCurve constructor.
