@@ -23,6 +23,16 @@ use FurqanSiddiqui\DataTypes\Base16;
 interface EllipticCurveInterface
 {
     /**
+     * @return \GMP
+     */
+    public function prime(): \GMP;
+
+    /**
+     * @return \GMP
+     */
+    public function order(): \GMP;
+
+    /**
      * @param Base16 $privateKey
      * @return PublicKey
      */
