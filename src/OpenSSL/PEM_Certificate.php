@@ -32,7 +32,7 @@ class PEM_Certificate extends AbstractStringType
     public function __construct(?string $pem = null, bool $validate = true)
     {
         if ($validate) {
-            if (!preg_match('/^[-]{5}[\w\s]+[-]{5}\n[a-z0-9\+\/\=\n]+[-]{5}[\w\s]+[-]{5}[\n]?$/i', $pem)) {
+            if (!preg_match('/^[-]{5}[\w\s]+[-]{5}\n[a-z0-9+\/=\n]+[-]{5}[\w\s]+[-]{5}[\n]?$/i', $pem)) {
                 throw new \InvalidArgumentException('Invalid PEM certificate');
             }
         }

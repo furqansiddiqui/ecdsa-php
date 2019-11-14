@@ -81,8 +81,8 @@ class Secp256k1 extends AbstractCurve
             throw new \UnexpectedValueException('Failed to calculate point Y');
         }
 
+        $resY = null;
         if ($evenOrOddPrefix === "02") {
-            $resY = null;
             if (gmp_strval(gmp_mod($y[0], gmp_init(2, 10)), 10) === '0') {
                 $resY = gmp_strval($y[0], 16);
             }
@@ -99,7 +99,6 @@ class Secp256k1 extends AbstractCurve
 
             return new PublicKey(new Base16(gmp_strval($x, 16)), new Base16($resY));
         } elseif ($evenOrOddPrefix === "03") {
-            $resY = null;
             if (gmp_strval(gmp_mod($y[0], gmp_init(2, 10)), 10) === '1') {
                 $resY = gmp_strval($y[0], 16);
             }
