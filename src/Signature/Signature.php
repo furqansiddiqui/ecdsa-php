@@ -14,7 +14,7 @@ declare(strict_types=1);
 
 namespace FurqanSiddiqui\ECDSA\Signature;
 
-use FurqanSiddiqui\DataTypes\Base16;
+use Comely\DataTypes\Buffer\Base16;
 
 /**
  * Class Signature
@@ -73,6 +73,4 @@ class Signature
 
         return $der->readOnly(true);
     }
-
-
 }

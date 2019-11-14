@@ -14,7 +14,7 @@ declare(strict_types=1);
 
 namespace FurqanSiddiqui\ECDSA\OpenSSL;
 
-use FurqanSiddiqui\DataTypes\Binary;
+use Comely\DataTypes\Buffer\Binary;
 use FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception;
 
 /**
@@ -39,7 +39,7 @@ class OpenSSL
      */
     public static function Secp256k1_PrivateKeyPEM(Binary $privateKey): PEM_Certificate
     {
-        $secp256k1_curveKey = $privateKey->encode()->base16()
+        $secp256k1_curveKey = $privateKey->base16()
             ->prepend("302e0201010420")
             ->append("a00706052b8104000a");
         return PEM_Certificate::fromDER($secp256k1_curveKey->binary(), "EC PRIVATE KEY");

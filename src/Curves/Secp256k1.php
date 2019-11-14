@@ -14,8 +14,8 @@ declare(strict_types=1);
 
 namespace FurqanSiddiqui\ECDSA\Curves;
 
-use FurqanSiddiqui\BcMath\BcNumber;
-use FurqanSiddiqui\DataTypes\Base16;
+use Comely\DataTypes\BcNumber;
+use Comely\DataTypes\Buffer\Base16;
 use FurqanSiddiqui\ECDSA\ECC\AbstractCurve;
 use FurqanSiddiqui\ECDSA\ECC\Math;
 use FurqanSiddiqui\ECDSA\ECC\PublicKey;
@@ -45,13 +45,13 @@ class Secp256k1 extends AbstractCurve
     {
         $publicKey = $this->generator()->mul(gmp_init($privateKey->hexits(), 16));
         $kX = new Base16(gmp_strval($publicKey->x(), 16));
-        if ($kX->size()->chars() < 64) {
-            $kX->prepend(str_repeat("0", 64 - $kX->size()->chars()));
+        if ($kX->len() < 64) {
+            $kX->prepend(str_repeat("0", 64 - $kX->len()));
         }
 
         $kY = new Base16(gmp_strval($publicKey->y(), 16));
-        if ($kY->size()->chars() < 64) {
-            $kY->prepend(str_repeat("0", 64 - $kX->size()->chars()));
+        if ($kY->len() < 64) {
+            $kY->prepend(str_repeat("0", 64 - $kX->len()));
         }
 
         return new PublicKey($kX, $kY);

@@ -14,9 +14,9 @@ declare(strict_types=1);
 
 namespace FurqanSiddiqui\ECDSA\Signature;
 
-use FurqanSiddiqui\BcMath\BcNumber;
-use FurqanSiddiqui\DataTypes\Binary;
-use FurqanSiddiqui\DataTypes\Bitwise;
+use Comely\DataTypes\BcNumber;
+use Comely\DataTypes\Buffer\Binary;
+use Comely\DataTypes\Buffer\Bitwise;
 use FurqanSiddiqui\ECDSA\ECC\Math;
 
 /**
@@ -69,8 +69,8 @@ class Rfc6979
      */
     public function bits2int(Bitwise $in, int $qLen): BcNumber
     {
-        $vLen = $in->size()->chars();
-        $v = BcNumber::Decode($in->base16());
+        $vLen = $in->len();
+        $v = BcNumber::fromBase16($in->base16());
 
         if ($vLen > $qLen) {
             $v = Math::bcRightShift($v->value(), $vLen - $qLen);
@@ -106,8 +106,8 @@ class Rfc6979
      */
     public function generateK(BcNumber $q): BcNumber
     {
-        $qBitwise = $q->encode()->bitwise();
-        $qLen = $qBitwise->size()->chars();
+        $qBitwise = $q->toBitwise();
+        $qLen = $qBitwise->len();
         $hoLen = $this->hashAlgoBitLen();
         $roLen = ($qLen + 7) >> 3;
 
@@ -145,7 +145,7 @@ class Rfc6979
             // Step H3
             $secret = $this->bits2int($t->bitwise(), $qLen);
             $secret->scale(0);
-            if ($secret->cmp(0) > 0 && $secret->compare($q) < 0) {
+            if ($secret->cmp(0) > 0 && $secret->cmp($q) < 0) {
                 return $secret;
             }
 

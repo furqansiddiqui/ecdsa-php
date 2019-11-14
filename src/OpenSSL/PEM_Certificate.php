@@ -14,30 +14,27 @@ declare(strict_types=1);
 
 namespace FurqanSiddiqui\ECDSA\OpenSSL;
 
-use FurqanSiddiqui\DataTypes\Base64;
-use FurqanSiddiqui\DataTypes\Binary;
-use FurqanSiddiqui\DataTypes\Buffer\AbstractStringType;
+use Comely\DataTypes\Buffer\AbstractBuffer;
+use Comely\DataTypes\Buffer\Base64;
+use Comely\DataTypes\Buffer\Binary;
 
 /**
  * Class PEM_Certificate
  * @package FurqanSiddiqui\ECDSA\OpenSSL
  */
-class PEM_Certificate extends AbstractStringType
+class PEM_Certificate extends AbstractBuffer
 {
     /**
-     * PEM_Certificate constructor.
-     * @param string|null $pem
-     * @param bool $validate
+     * @param string|null $data
+     * @return string
      */
-    public function __construct(?string $pem = null, bool $validate = true)
+    public function validatedDataTypeValue(?string $data): string
     {
-        if ($validate) {
-            if (!preg_match('/^[-]{5}[\w\s]+[-]{5}\n[a-z0-9+\/=\n]+[-]{5}[\w\s]+[-]{5}[\n]?$/i', $pem)) {
-                throw new \InvalidArgumentException('Invalid PEM certificate');
-            }
+        if (!is_string($data) || !preg_match('/^[-]{5}[\w\s]+[-]{5}\n[a-z0-9+\/=\n]+[-]{5}[\w\s]+[-]{5}[\n]?$/i', $data)) {
+            throw new \InvalidArgumentException('Invalid PEM certificate');
         }
 
-        parent::__construct($pem);
+        return $data;
     }
 
     /**
@@ -45,7 +42,7 @@ class PEM_Certificate extends AbstractStringType
      */
     public function __toString(): string
     {
-        return $this->data();
+        return $this->value();
     }
 
     /**
@@ -63,7 +60,7 @@ class PEM_Certificate extends AbstractStringType
      */
     public function der(string $eol = "\n"): Binary
     {
-        $split = preg_split('/[-]{5}[\w\s]+[-]{5}/i', $this->data());
+        $split = preg_split('/[-]{5}[\w\s]+[-]{5}/i', $this->value());
         $body = implode("", explode($eol, trim($split[1])));
         return (new Base64($body))->binary();
     }
@@ -78,9 +75,9 @@ class PEM_Certificate extends AbstractStringType
     {
         $type = strtoupper($type);
         $pem = sprintf("-----BEGIN %s-----", $type) . $eol;
-        $pem .= chunk_split($data->get()->base64()->encoded(), 64, $eol);
+        $pem .= chunk_split($data->base64()->encoded(), 64, $eol);
         $pem .= sprintf("-----END %s-----", $type) . $eol;
 
-        return (new self($pem, false))->readOnly(true);
+        return (new self($pem))->readOnly(true);
     }
 }

@@ -14,7 +14,7 @@ declare(strict_types=1);
 
 namespace FurqanSiddiqui\ECDSA\ECC;
 
-use FurqanSiddiqui\DataTypes\Base16;
+use Comely\DataTypes\Buffer\Base16;
 use FurqanSiddiqui\ECDSA\Signature\Signature;
 
 /**
