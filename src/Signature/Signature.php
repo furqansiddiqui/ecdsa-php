@@ -60,12 +60,26 @@ class Signature
     public function getDER(): Base16
     {
         $der = new Base16();
+
+        // Prepare R
+        $r = $this->r()->copy();
+        if (substr($r->binary()->bitwise()->value(), 0, 1) === "1") {
+            $r->prepend("00");
+        }
+
         $der->append("02"); // Append R
-        $der->append(dechex($this->r()->binary()->size()->bytes()));
-        $der->append($this->r->hexits());
+        $der->append(dechex($r->binary()->size()->bytes()));
+        $der->append($r->hexits());
+
+        // Prepare S
+        $s = $this->s()->copy();
+        if (substr($s->binary()->bitwise()->value(), 0, 1) === "1") {
+            $s->prepend("00");
+        }
+
         $der->append("02"); // Append S
-        $der->append(dechex($this->s()->binary()->size()->bytes()));
-        $der->append($this->s->hexits());
+        $der->append(dechex($s->binary()->size()->bytes()));
+        $der->append($s->hexits());
 
         // DER prefix
         $der->prepend(dechex($der->binary()->size()->bytes()));
