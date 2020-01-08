@@ -51,7 +51,7 @@ class Secp256k1 extends AbstractCurve
 
         $kY = new Base16(gmp_strval($publicKey->y(), 16));
         if ($kY->len() < 64) {
-            $kY->prepend(str_repeat("0", 64 - $kX->len()));
+            $kY->prepend(str_repeat("0", 64 - $kY->len()));
         }
 
         return new PublicKey($kX, $kY);
