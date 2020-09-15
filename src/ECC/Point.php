@@ -19,7 +19,7 @@ namespace FurqanSiddiqui\ECDSA\ECC;
 class Point
 {
     /** @var AbstractCurve */
-    private $curve;
+    private AbstractCurve $curve;
     /** @var \GMP */
     private $x;
     /** @var \GMP */
@@ -140,6 +140,6 @@ class Point
     {
         $y2 = gmp_mod(gmp_add(gmp_add(gmp_powm($this->x, gmp_init(3, 10), $this->curve->prime()), gmp_mul($this->curve->a(), $this->x)), $this->curve->b()), $this->curve->prime());
         $y = gmp_mod(gmp_pow($this->y, 2), $this->curve->prime());
-        return gmp_cmp($y2, $y) === 0 ? true : false;
+        return gmp_cmp($y2, $y) === 0;
     }
 }

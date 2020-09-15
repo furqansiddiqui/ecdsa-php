@@ -23,9 +23,9 @@ use Comely\DataTypes\Buffer\Base16;
 class PublicKey
 {
     /** @var Base16 */
-    private $x;
+    private Base16 $x;
     /** @var Base16 */
-    private $y;
+    private Base16 $y;
 
     /**
      * PublicKey constructor.

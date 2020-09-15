@@ -38,11 +38,11 @@ class Rfc6979
     ];
 
     /** @var string */
-    private $algo;
+    private string $algo;
     /** @var BcNumber */
-    private $privateKey;
+    private BcNumber $privateKey;
     /** @var BcNumber */
-    private $message;
+    private BcNumber $message;
 
     /**
      * Rfc6979 constructor.
