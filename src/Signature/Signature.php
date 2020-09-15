@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace FurqanSiddiqui\ECDSA\Signature;
 
 use Comely\DataTypes\Buffer\Base16;
+use FurqanSiddiqui\ECDSA\ECC\Point;
 
 /**
  * Class Signature
@@ -23,19 +24,23 @@ use Comely\DataTypes\Buffer\Base16;
 class Signature
 {
     /** @var Base16 */
-    private $r;
+    private Base16 $r;
     /** @var Base16 */
-    private $s;
+    private Base16 $s;
+    /** @var Point */
+    private Point $curvePointR;
 
     /**
      * Signature constructor.
      * @param Base16 $r
      * @param Base16 $s
+     * @param Point $curvePointR
      */
-    public function __construct(Base16 $r, Base16 $s)
+    public function __construct(Base16 $r, Base16 $s, Point $curvePointR)
     {
         $this->r = $r;
         $this->s = $s;
+        $this->curvePointR = $curvePointR;
     }
 
     /**

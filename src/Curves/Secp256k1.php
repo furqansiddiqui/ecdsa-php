@@ -186,7 +186,7 @@ class Secp256k1 extends AbstractCurve
             $r = "0" . $r;
         }
 
-        return new Signature(new Base16($r), new Base16($s));
+        return new Signature(new Base16($r), new Base16($s), $ptR);
     }
 
     /**
