@@ -13,11 +13,11 @@
     }
   ],
   "require": {
-    "php-64bit": "^7.2",
+    "php-64bit": "^7.4",
     "ext-openssl": "*",
     "ext-bcmath": "*",
     "ext-gmp": "*",
-    "comely-io/data-types": "^1.0.30"
+    "comely-io/data-types": "^1.0.34"
   },
   "autoload": {
     "psr-4": {
