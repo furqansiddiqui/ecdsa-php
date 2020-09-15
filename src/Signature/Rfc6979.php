@@ -1,9 +1,9 @@
 <?php
-/**
+/*
  * This file is a part of "furqansiddiqui/ecdsa-php" package.
  * https://github.com/furqansiddiqui/ecdsa-php
  *
- * Copyright (c) 2019 Furqan A. Siddiqui <hello@furqansiddiqui.com>
+ * Copyright (c) Furqan A. Siddiqui <hello@furqansiddiqui.com>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code or visit following link:
@@ -152,8 +152,6 @@ class Rfc6979
             $k = $v->clone()->append("\x00")->hash()->hmac($this->algo, $k);
             $v = $v->clone()->hash()->hmac($this->algo, $k);
         }
-
-        throw new \LogicException('Could not generate K as per Rfc6979');
     }
 
     /**
