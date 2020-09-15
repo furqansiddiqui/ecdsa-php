@@ -60,6 +60,14 @@ class Signature
     }
 
     /**
+     * @return Point
+     */
+    public function curvePointR(): Point
+    {
+        return $this->curvePointR;
+    }
+
+    /**
      * @return Base16
      */
     public function getDER(): Base16
