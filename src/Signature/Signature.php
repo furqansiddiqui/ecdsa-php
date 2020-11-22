@@ -21,7 +21,7 @@ use FurqanSiddiqui\ECDSA\ECC\Point;
  * Class Signature
  * @package FurqanSiddiqui\ECDSA\Signature
  */
-class Signature
+class Signature implements SignatureInterface
 {
     /** @var Base16 */
     private Base16 $r;

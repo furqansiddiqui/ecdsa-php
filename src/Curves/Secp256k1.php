@@ -21,6 +21,7 @@ use FurqanSiddiqui\ECDSA\ECC\Math;
 use FurqanSiddiqui\ECDSA\ECC\PublicKey;
 use FurqanSiddiqui\ECDSA\Signature\Rfc6979;
 use FurqanSiddiqui\ECDSA\Signature\Signature;
+use FurqanSiddiqui\ECDSA\Signature\SignatureInterface;
 
 /**
  * Class Secp256k1
@@ -191,11 +192,11 @@ class Secp256k1 extends AbstractCurve
 
     /**
      * @param PublicKey $publicKey
-     * @param Signature $signature
+     * @param SignatureInterface $signature
      * @param Base16 $msgHash
      * @return bool
      */
-    public function verify(PublicKey $publicKey, Signature $signature, Base16 $msgHash): bool
+    public function verify(PublicKey $publicKey, SignatureInterface $signature, Base16 $msgHash): bool
     {
         $G = $this->generator();
         $R = $signature->r()->hexits();
@@ -222,12 +223,12 @@ class Secp256k1 extends AbstractCurve
     }
 
     /**
-     * @param Signature $signature
+     * @param SignatureInterface $signature
      * @param Base16 $msgHash
      * @param int $flag
      * @return PublicKey
      */
-    public function recoverPublicKeyFromSignature(Signature $signature, Base16 $msgHash, int $flag): PublicKey
+    public function recoverPublicKeyFromSignature(SignatureInterface $signature, Base16 $msgHash, int $flag): PublicKey
     {
         $R = $signature->r()->hexits();
         $S = $signature->s()->hexits();
