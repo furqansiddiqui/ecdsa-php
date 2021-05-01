@@ -68,7 +68,6 @@ class Secp256k1 extends AbstractCurve
         $b = $this->b();
         $p = $this->prime();
 
-        $evenOrOddPrefix = null;
         $x = $compressed->hexits();
         if (strlen($x) !== 66) {
             throw new \LengthException('Invalid public key length');
@@ -187,7 +186,7 @@ class Secp256k1 extends AbstractCurve
             $r = "0" . $r;
         }
 
-        return new Signature(new Base16($r), new Base16($s), $ptR);
+        return new Signature(new Base16($r), new Base16($s), $ptR, $randomK);
     }
 
     /**

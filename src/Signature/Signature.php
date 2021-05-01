@@ -29,18 +29,22 @@ class Signature implements SignatureInterface
     private Base16 $s;
     /** @var Point */
     private Point $curvePointR;
+    /** @var Base16 */
+    private Base16 $randK;
 
     /**
      * Signature constructor.
      * @param Base16 $r
      * @param Base16 $s
      * @param Point $curvePointR
+     * @param Base16 $randK
      */
-    public function __construct(Base16 $r, Base16 $s, Point $curvePointR)
+    public function __construct(Base16 $r, Base16 $s, Point $curvePointR, Base16 $randK)
     {
         $this->r = $r;
         $this->s = $s;
         $this->curvePointR = $curvePointR;
+        $this->randK = $randK;
     }
 
     /**
@@ -65,6 +69,14 @@ class Signature implements SignatureInterface
     public function curvePointR(): Point
     {
         return $this->curvePointR;
+    }
+
+    /**
+     * @return Base16
+     */
+    public function randK(): Base16
+    {
+        return $this->randK;
     }
 
     /**
