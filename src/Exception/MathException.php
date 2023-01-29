@@ -18,6 +18,6 @@ namespace FurqanSiddiqui\ECDSA\Exception;
  * Class MathException
  * @package FurqanSiddiqui\ECDSA\Exception
  */
-class MathException extends GenerateVectorException
+class MathException extends ECDSA_Exception
 {
 }

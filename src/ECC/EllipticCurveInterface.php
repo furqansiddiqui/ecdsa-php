@@ -14,7 +14,7 @@ declare(strict_types=1);
 
 namespace FurqanSiddiqui\ECDSA\ECC;
 
-use Comely\DataTypes\Buffer\Base16;
+use Comely\Buffer\AbstractByteArray;
 use FurqanSiddiqui\ECDSA\Signature\Signature;
 
 /**
@@ -24,63 +24,53 @@ use FurqanSiddiqui\ECDSA\Signature\Signature;
 interface EllipticCurveInterface
 {
     /**
-     * @return \GMP
+     * @param \Comely\Buffer\AbstractByteArray $privateKey
+     * @return \FurqanSiddiqui\ECDSA\ECC\PublicKey
      */
-    public function prime(): \GMP;
+    public function generatePublicKey(AbstractByteArray $privateKey): PublicKey;
 
     /**
-     * @return \GMP
+     * @param \Comely\Buffer\AbstractByteArray $compressed
+     * @return \FurqanSiddiqui\ECDSA\ECC\PublicKey
      */
-    public function order(): \GMP;
+    public function getPublicKeyFromCompressed(AbstractByteArray $compressed): PublicKey;
 
     /**
-     * @param Base16 $privateKey
-     * @return PublicKey
+     * @param \Comely\Buffer\AbstractByteArray $publicKey
+     * @return \FurqanSiddiqui\ECDSA\ECC\PublicKey
      */
-    public function getPublicKey(Base16 $privateKey): PublicKey;
+    public function uncompressedPublicKey(AbstractByteArray $publicKey): PublicKey;
 
     /**
-     * @param Base16 $compressed
-     * @return PublicKey
+     * @param \Comely\Buffer\AbstractByteArray $privateKey
+     * @param \Comely\Buffer\AbstractByteArray $msgHash
+     * @param \Comely\Buffer\AbstractByteArray|null $randomK
+     * @return \FurqanSiddiqui\ECDSA\Signature\Signature
      */
-    public function getPublicKeyFromCompressed(Base16 $compressed): PublicKey;
+    public function sign(AbstractByteArray $privateKey, AbstractByteArray $msgHash, ?AbstractByteArray $randomK = null): Signature;
 
     /**
-     * @param Base16 $publicKey
-     * @return PublicKey
-     */
-    public function usePublicKey(Base16 $publicKey): PublicKey;
-
-    /**
-     * @param Signature $signature
-     * @param Base16 $msgHash
-     * @param int $flag
-     * @return PublicKey
-     */
-    public function recoverPublicKeyFromSignature(Signature $signature, Base16 $msgHash, int $flag): PublicKey;
-
-    /**
-     * @param PublicKey $publicKey
-     * @param Signature $signature
-     * @param Base16 $msgHash
-     * @param bool $compressed
-     * @return int
-     */
-    public function findRecoveryId(PublicKey $publicKey, Signature $signature, Base16 $msgHash, bool $compressed): int;
-
-    /**
-     * @param PublicKey $publicKey
-     * @param Signature $signature
-     * @param Base16 $msgHash
+     * @param \FurqanSiddiqui\ECDSA\ECC\PublicKey $publicKey
+     * @param \FurqanSiddiqui\ECDSA\Signature\Signature $signature
+     * @param \Comely\Buffer\AbstractByteArray $msgHash
      * @return bool
      */
-    public function verify(PublicKey $publicKey, Signature $signature, Base16 $msgHash): bool;
+    public function verify(PublicKey $publicKey, Signature $signature, AbstractByteArray $msgHash): bool;
 
     /**
-     * @param Base16 $privateKey
-     * @param Base16 $msgHash
-     * @param Base16|null $randomK
-     * @return Signature
+     * @param \FurqanSiddiqui\ECDSA\Signature\Signature $signature
+     * @param \Comely\Buffer\AbstractByteArray $msgHash
+     * @param int $flag
+     * @return \FurqanSiddiqui\ECDSA\ECC\PublicKey
      */
-    public function sign(Base16 $privateKey, Base16 $msgHash, ?Base16 $randomK = null): Signature;
+    public function recoverPublicKeyFromSignature(Signature $signature, AbstractByteArray $msgHash, int $flag): PublicKey;
+
+    /**
+     * @param \FurqanSiddiqui\ECDSA\ECC\PublicKey $publicKey
+     * @param \FurqanSiddiqui\ECDSA\Signature\Signature $signature
+     * @param \Comely\Buffer\AbstractByteArray $msgHash
+     * @param bool $useCompressed
+     * @return int
+     */
+    public function findRecoveryId(PublicKey $publicKey, Signature $signature, AbstractByteArray $msgHash, bool $useCompressed): int;
 }

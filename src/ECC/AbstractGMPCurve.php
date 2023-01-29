@@ -12,13 +12,13 @@
 
 namespace FurqanSiddiqui\ECDSA\ECC;
 
-use Comely\DataTypes\Buffer\Base16;
+use Comely\Buffer\AbstractByteArray;
 
 /**
- * Class AbstractCurve
+ * Class AbstractGMPCurve
  * @package FurqanSiddiqui\ECDSA\ECC
  */
-abstract class AbstractCurve implements EllipticCurveInterface
+abstract class AbstractGMPCurve implements EllipticCurveInterface
 {
     public const A = null;
     public const B = null;
@@ -28,21 +28,21 @@ abstract class AbstractCurve implements EllipticCurveInterface
     public const Gy = null;
 
     /** @var \GMP */
-    private $a;
+    public readonly \GMP $a;
     /** @var \GMP */
-    private $b;
+    public readonly \GMP $b;
     /** @var \GMP */
-    private $prime;
+    public readonly \GMP $prime;
     /** @var \GMP */
-    private $order;
+    public readonly \GMP $order;
 
-    /** @var static */
-    private static $instances = [];
+    /** @var array */
+    private static array $instances = [];
 
     /**
-     * @return mixed
+     * @return static
      */
-    public static function getInstance()
+    public static function getInstance(): static
     {
         $curve = get_called_class();
         if (!isset(self::$instances[$curve])) {
@@ -64,38 +64,6 @@ abstract class AbstractCurve implements EllipticCurveInterface
     }
 
     /**
-     * @return \GMP
-     */
-    public function a(): \GMP
-    {
-        return $this->a;
-    }
-
-    /**
-     * @return \GMP
-     */
-    public function b(): \GMP
-    {
-        return $this->b;
-    }
-
-    /**
-     * @return \GMP
-     */
-    public function prime(): \GMP
-    {
-        return $this->prime;
-    }
-
-    /**
-     * @return \GMP
-     */
-    public function order(): \GMP
-    {
-        return $this->order;
-    }
-
-    /**
      * @return Point
      */
     public function generator(): Point
@@ -104,30 +72,30 @@ abstract class AbstractCurve implements EllipticCurveInterface
     }
 
     /**
-     * @param $x
-     * @param $y
-     * @return Point
+     * @param \GMP|int|string $x
+     * @param \GMP|int|string $y
+     * @return \FurqanSiddiqui\ECDSA\ECC\Point
      */
-    public function getPoint($x, $y): Point
+    public function getPoint(\GMP|int|string $x, \GMP|int|string $y): Point
     {
         return new Point($this, $x, $y);
     }
 
     /**
-     * @param Base16 $privateKey
-     * @return PublicKey
+     * @param \Comely\Buffer\AbstractByteArray $privateKey
+     * @return \FurqanSiddiqui\ECDSA\ECC\PublicKey
      */
-    abstract public function getPublicKey(Base16 $privateKey): PublicKey;
+    abstract public function generatePublicKey(AbstractByteArray $privateKey): PublicKey;
 
     /**
-     * @param Base16 $compressed
-     * @return PublicKey
+     * @param \Comely\Buffer\AbstractByteArray $compressed
+     * @return \FurqanSiddiqui\ECDSA\ECC\PublicKey
      */
-    abstract public function getPublicKeyFromCompressed(Base16 $compressed): PublicKey;
+    abstract public function getPublicKeyFromCompressed(AbstractByteArray $compressed): PublicKey;
 
     /**
-     * @param Base16 $publicKey
-     * @return PublicKey
+     * @param \Comely\Buffer\AbstractByteArray $publicKey
+     * @return \FurqanSiddiqui\ECDSA\ECC\PublicKey
      */
-    abstract public function usePublicKey(Base16 $publicKey): PublicKey;
+    abstract public function uncompressedPublicKey(AbstractByteArray $publicKey): PublicKey;
 }

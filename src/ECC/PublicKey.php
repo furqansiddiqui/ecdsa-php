@@ -14,7 +14,7 @@ declare(strict_types=1);
 
 namespace FurqanSiddiqui\ECDSA\ECC;
 
-use Comely\DataTypes\Buffer\Base16;
+use Comely\Buffer\Buffer;
 
 /**
  * Class PublicKey
@@ -22,53 +22,31 @@ use Comely\DataTypes\Buffer\Base16;
  */
 class PublicKey
 {
-    /** @var Base16 */
-    private Base16 $x;
-    /** @var Base16 */
-    private Base16 $y;
-
     /**
-     * PublicKey constructor.
-     * @param Base16 $x
-     * @param Base16 $y
+     * @param string $x as base16/hex
+     * @param string $y as base16/hex
      */
-    public function __construct(Base16 $x, Base16 $y)
+    public function __construct(
+        public readonly string $x,
+        public readonly string $y
+    )
     {
-        $this->x = $x->readOnly(true);
-        $this->y = $y->readOnly(true);
     }
 
     /**
-     * @return Base16
+     * @return \Comely\Buffer\Buffer
      */
-    public function x(): Base16
+    public function getUnCompressed(): Buffer
     {
-        return $this->x;
+        return (new Buffer(hex2bin("04" . $this->x . $this->y)))->readOnly();
     }
 
     /**
-     * @return Base16
+     * @return \Comely\Buffer\Buffer
      */
-    public function y(): Base16
+    public function getCompressed(): Buffer
     {
-        return $this->y;
-    }
-
-    /**
-     * @return Base16
-     */
-    public function getUnCompressed(): Base16
-    {
-        return (new Base16("04" . $this->x->hexits() . $this->y->hexits()))
-            ->readOnly(true);
-    }
-
-    /**
-     * @return Base16
-     */
-    public function getCompressed(): Base16
-    {
-        $prefix = gmp_strval(gmp_mod(gmp_init($this->y->hexits(), 16), gmp_init(2, 10))) === "0" ? "02" : "03";
-        return (new Base16($prefix . $this->x->hexits()));
+        $prefix = gmp_strval(gmp_mod(gmp_init($this->y, 16), gmp_init(2, 10))) === "0" ? "02" : "03";
+        return (new Buffer(hex2bin($prefix . $this->x)))->readOnly();
     }
 }

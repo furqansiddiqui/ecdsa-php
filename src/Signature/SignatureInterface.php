@@ -14,21 +14,10 @@ declare(strict_types=1);
 
 namespace FurqanSiddiqui\ECDSA\Signature;
 
-use Comely\DataTypes\Buffer\Base16;
-
 /**
  * Interface SignatureInterface
  * @package FurqanSiddiqui\ECDSA\Signature
  */
 interface SignatureInterface
 {
-    /**
-     * @return Base16
-     */
-    public function r(): Base16;
-
-    /**
-     * @return Base16
-     */
-    public function s(): Base16;
 }

@@ -14,7 +14,8 @@ declare(strict_types=1);
 
 namespace FurqanSiddiqui\ECDSA\Signature;
 
-use Comely\DataTypes\Buffer\Base16;
+use Comely\Buffer\AbstractByteArray;
+use Comely\Buffer\Buffer;
 use FurqanSiddiqui\ECDSA\ECC\Point;
 
 /**
@@ -23,93 +24,50 @@ use FurqanSiddiqui\ECDSA\ECC\Point;
  */
 class Signature implements SignatureInterface
 {
-    /** @var Base16 */
-    private Base16 $r;
-    /** @var Base16 */
-    private Base16 $s;
-    /** @var Point */
-    private Point $curvePointR;
-    /** @var Base16 */
-    private Base16 $randK;
-
     /**
-     * Signature constructor.
-     * @param Base16 $r
-     * @param Base16 $s
-     * @param Point $curvePointR
-     * @param Base16 $randK
+     * @param \Comely\Buffer\AbstractByteArray $r
+     * @param \Comely\Buffer\AbstractByteArray $s
+     * @param \FurqanSiddiqui\ECDSA\ECC\Point $curvePointR
+     * @param \Comely\Buffer\AbstractByteArray $k
      */
-    public function __construct(Base16 $r, Base16 $s, Point $curvePointR, Base16 $randK)
+    public function __construct(
+        public readonly AbstractByteArray $r,
+        public readonly AbstractByteArray $s,
+        public readonly Point             $curvePointR,
+        public readonly AbstractByteArray $k)
     {
-        $this->r = $r;
-        $this->s = $s;
-        $this->curvePointR = $curvePointR;
-        $this->randK = $randK;
     }
 
     /**
-     * @return Base16
+     * @return \Comely\Buffer\AbstractByteArray
      */
-    public function r(): Base16
+    public function getDER(): AbstractByteArray
     {
-        return $this->r;
-    }
-
-    /**
-     * @return Base16
-     */
-    public function s(): Base16
-    {
-        return $this->s;
-    }
-
-    /**
-     * @return Point
-     */
-    public function curvePointR(): Point
-    {
-        return $this->curvePointR;
-    }
-
-    /**
-     * @return Base16
-     */
-    public function randK(): Base16
-    {
-        return $this->randK;
-    }
-
-    /**
-     * @return Base16
-     */
-    public function getDER(): Base16
-    {
-        $der = new Base16();
+        $der = new Buffer();
 
         // Prepare R
-        $r = $this->r()->copy();
-        if (substr($r->binary()->bitwise()->value(), 0, 1) === "1") {
-            $r->prepend("00");
+        $r = new Buffer($this->r->raw());
+        if (str_starts_with(gmp_strval(gmp_init($r->toBase16(false), 16), 2), "1")) {
+            $r->prepend("\x00");
         }
 
-        $der->append("02"); // Append R
-        $der->append(dechex($r->binary()->size()->bytes()));
-        $der->append($r->hexits());
+        $der->append("\x02");
+        $der->append(decbin($r->len()));
+        $der->append($r);
 
         // Prepare S
-        $s = $this->s()->copy();
-        if (substr($s->binary()->bitwise()->value(), 0, 1) === "1") {
-            $s->prepend("00");
+        $s = new Buffer($this->s->raw());
+        if (str_starts_with(gmp_strval(gmp_init($s->toBase16(false), 16), 2), "1")) {
+            $s->prepend("\x00");
         }
 
-        $der->append("02"); // Append S
-        $der->append(dechex($s->binary()->size()->bytes()));
-        $der->append($s->hexits());
+        $der->append("\x02");
+        $der->append(decbin($s->len()));
+        $der->append($s);
 
         // DER prefix
-        $der->prepend(dechex($der->binary()->size()->bytes()));
-        $der->prepend("30");
-
-        return $der->readOnly(true);
+        $der->prepend(decbin($der->len()));
+        $der->prepend("\x30");
+        return $der->readOnly();
     }
 }

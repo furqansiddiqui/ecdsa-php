@@ -18,20 +18,19 @@ namespace FurqanSiddiqui\ECDSA\ECC;
  */
 class Point
 {
-    /** @var AbstractCurve */
-    private AbstractCurve $curve;
+    /** @var AbstractGMPCurve */
+    private AbstractGMPCurve $curve;
     /** @var \GMP */
-    private $x;
+    public readonly \GMP $x;
     /** @var \GMP */
-    private $y;
+    public readonly \GMP $y;
 
     /**
-     * Point constructor.
-     * @param AbstractCurve $curve
-     * @param $x
-     * @param $y
+     * @param \FurqanSiddiqui\ECDSA\ECC\AbstractGMPCurve $curve
+     * @param \GMP|int|string $x
+     * @param \GMP|int|string $y
      */
-    public function __construct(AbstractCurve $curve, $x, $y)
+    public function __construct(AbstractGMPCurve $curve, \GMP|int|string $x, \GMP|int|string $y)
     {
         $this->curve = $curve;
         $this->x = $x instanceof \GMP ? $x : gmp_init($x, 10);
@@ -50,35 +49,17 @@ class Point
     }
 
     /**
-     * @return \GMP
-     */
-    public function x(): \GMP
-    {
-        return $this->x;
-    }
-
-    /**
-     * @return \GMP
-     */
-    public function y(): \GMP
-    {
-        return $this->y;
-    }
-
-    /**
      * @return Point
      */
     public function double(): Point
     {
-        $a = $this->curve->a();
-        $p = $this->curve->prime();
-
+        $p = $this->curve->prime;
         if (gmp_strval(gmp_gcd(gmp_mod(gmp_mul(gmp_init(2, 10), $this->y), $p), $p)) !== "1") {
             throw new \LogicException("Point at infinity");
         }
 
         $t1 = gmp_invert(gmp_mod(gmp_mul(gmp_init(2, 10), $this->y), $p), $p);
-        $t2 = gmp_add(gmp_mul(gmp_init(3, 10), gmp_pow($this->x, 2)), $a);
+        $t2 = gmp_add(gmp_mul(gmp_init(3, 10), gmp_pow($this->x, 2)), $this->curve->a);
         $slope = gmp_mod(gmp_mul($t1, $t2), $p);
 
         $nX = gmp_mod(gmp_sub(gmp_sub(gmp_pow($slope, 2), $this->x), $this->x), $p);
@@ -93,17 +74,17 @@ class Point
      */
     public function add(Point $p2): Point
     {
-        if (gmp_cmp($this->x, $p2->x()) === 0 && gmp_cmp($this->y, $p2->y()) === 0) {
+        if (gmp_cmp($this->x, $p2->x) === 0 && gmp_cmp($this->y, $p2->y) === 0) {
             return $this->double();
         }
 
-        $p = $this->curve->prime();
-        if (gmp_strval(gmp_gcd(gmp_sub($this->x, $p2->x()), $p)) !== "1") {
+        $p = $this->curve->prime;
+        if (gmp_strval(gmp_gcd(gmp_sub($this->x, $p2->x), $p)) !== "1") {
             throw new \LogicException("Point at infinity");
         }
 
-        $slope = gmp_mod(gmp_mul(gmp_sub($this->y, $p2->y()), gmp_invert(gmp_sub($this->x, $p2->x()), $p)), $p);
-        $nX = gmp_mod(gmp_sub(gmp_sub(gmp_pow($slope, 2), $this->x), $p2->x()), $p);
+        $slope = gmp_mod(gmp_mul(gmp_sub($this->y, $p2->y), gmp_invert(gmp_sub($this->x, $p2->x), $p)), $p);
+        $nX = gmp_mod(gmp_sub(gmp_sub(gmp_pow($slope, 2), $this->x), $p2->x), $p);
         $nY = gmp_mod(gmp_sub(gmp_mul($slope, gmp_sub($this->x, $nX)), $this->y), $p);
 
         return new Point($this->curve, $nX, $nY);
@@ -138,8 +119,8 @@ class Point
      */
     public function validate(): bool
     {
-        $y2 = gmp_mod(gmp_add(gmp_add(gmp_powm($this->x, gmp_init(3, 10), $this->curve->prime()), gmp_mul($this->curve->a(), $this->x)), $this->curve->b()), $this->curve->prime());
-        $y = gmp_mod(gmp_pow($this->y, 2), $this->curve->prime());
+        $y2 = gmp_mod(gmp_add(gmp_add(gmp_powm($this->x, gmp_init(3, 10), $this->curve->prime), gmp_mul($this->curve->a, $this->x)), $this->curve->b), $this->curve->prime);
+        $y = gmp_mod(gmp_pow($this->y, 2), $this->curve->prime);
         return gmp_cmp($y2, $y) === 0;
     }
 }

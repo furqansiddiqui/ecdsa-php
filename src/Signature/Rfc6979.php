@@ -14,10 +14,9 @@ declare(strict_types=1);
 
 namespace FurqanSiddiqui\ECDSA\Signature;
 
-use Comely\DataTypes\BcNumber;
-use Comely\DataTypes\Buffer\Binary;
-use Comely\DataTypes\Buffer\Bitwise;
-use FurqanSiddiqui\ECDSA\ECC\Math;
+use Comely\Buffer\AbstractByteArray;
+use Comely\Buffer\Buffer;
+use FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception;
 
 /**
  * PHP implementation of RFC6979 deterministic DSA
@@ -38,127 +37,80 @@ class Rfc6979
     ];
 
     /** @var string */
-    private string $algo;
-    /** @var BcNumber */
-    private BcNumber $privateKey;
-    /** @var BcNumber */
-    private BcNumber $message;
+    private readonly string $algo;
 
     /**
-     * Rfc6979 constructor.
      * @param string $algo
-     * @param BcNumber $message
-     * @param BcNumber $privateKey
+     * @param \GMP $message
+     * @param \GMP $privateKey
      */
-    public function __construct(string $algo, BcNumber $message, BcNumber $privateKey)
+    public function __construct(string $algo, private readonly \GMP $message, private readonly \GMP $privateKey)
     {
         $this->algo = strtolower($algo);
         if (!array_key_exists($this->algo, self::HASH_ALGO)) {
             throw new \InvalidArgumentException('Invalid/unsupported hash algorithm');
         }
-
-        $this->message = $message;
-        $this->privateKey = $privateKey;
-    }
-
-
-    /**
-     * @param Bitwise $in
-     * @param int $qLen
-     * @return BcNumber
-     */
-    public function bits2int(Bitwise $in, int $qLen): BcNumber
-    {
-        $vLen = $in->len();
-        $v = BcNumber::fromBase16($in->base16());
-
-        if ($vLen > $qLen) {
-            $v = Math::bcRightShift($v->value(), $vLen - $qLen);
-        }
-
-        return $v;
     }
 
     /**
-     * @param BcNumber $int
+     * @param \GMP $int
      * @param int $roLen
-     * @return Binary
+     * @return string
      */
-    public function int2octets(BcNumber $int, int $roLen): Binary
+    private function int2octets(\GMP $int, int $roLen): string
     {
-        $bin = $int->encode()->binary();
-        $len = $bin->size()->bytes();
-
-        if ($len < $roLen) {
-            return $bin->prepend(str_repeat("\x00", ($roLen - $len)));
+        $hex = str_pad(gmp_strval($int, 16), $roLen * 2, "0", STR_PAD_LEFT);
+        if (strlen($hex) > $roLen * 2) {
+            $hex = substr($hex, 0, $roLen * 2);
         }
 
-        if ($roLen > $len) {
-            return $bin->substr(0, $roLen);
-        }
-
-        return $bin;
+        return $hex;
     }
 
     /**
-     * @param BcNumber $q
-     * @return BcNumber
+     * @param \GMP $q
+     * @return \Comely\Buffer\AbstractByteArray
+     * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception
      */
-    public function generateK(BcNumber $q): BcNumber
+    public function generateK(\GMP $q): AbstractByteArray
     {
-        $qBitwise = $q->toBitwise();
-        $qLen = $qBitwise->len();
-        $hoLen = $this->hashAlgoBitLen();
+        $qLen = strlen(gmp_strval($q, 2));
+        $hoLen = static::HASH_ALGO[$this->algo];
         $roLen = ($qLen + 7) >> 3;
 
-        $bx = $this->int2octets($this->privateKey, $roLen);
-        $bx->append($this->int2octets($this->message, $roLen));
+        $bx = hex2bin($this->int2octets($this->privateKey, $roLen) .
+            $this->int2octets($this->message, $roLen));
 
         // Step B
-        $v = (new Binary())->append(str_repeat("\x01", $hoLen >> 3));
+        $v = str_repeat("\x01", $hoLen >> 3);
 
         // Step C
-        $k = (new Binary())->append(str_repeat("\x00", $hoLen >> 3));
+        $k = str_repeat("\x00", $hoLen >> 3);
 
         // Step D
-        $k = $v->clone()->append("\x00")->append($bx)->hash()->hmac($this->algo, $k);
+        $k = hash_hmac($this->algo, $v . "\x00" . $bx, $k, true);
 
         // Step E
-        $v = $v->clone()->hash()->hmac($this->algo, $k);
+        $v = hash_hmac($this->algo, $v, $k, true);
 
         // Step F
-        $k = $v->clone()->append("\x01")->append($bx)->hash()->hmac($this->algo, $k);
+        $k = hash_hmac($this->algo, $v . "\x01" . $bx, $k, true);
 
         // Step G
-        $v = $v->clone()->hash()->hmac($this->algo, $k);
+        $v = hash_hmac($this->algo, $v, $k, true);
 
-        // Step H
-        $t = new Binary();
-        while (true) {
-            // Step H2
-            while ($t->size()->bytes() < ($qLen / 8)) {
-                /** @var Binary $v */
-                $v = $v->clone()->hash()->hmac($this->algo, $k);
-                $t->append($v);
+        // Step H+
+        for ($i = 0; $i <= 100; $i++) {
+            $v = hash_hmac($this->algo, $v, $k, true);
+            $t = gmp_init(bin2hex($v), 16);
+            if (gmp_cmp($t, 0) > 0 && gmp_cmp($t, $q) < 0) {
+                return Buffer::fromBase16(gmp_strval($t, 16));
             }
 
-            // Step H3
-            $secret = $this->bits2int($t->bitwise(), $qLen);
-            $secret->scale(0);
-            if ($secret->cmp(0) > 0 && $secret->cmp($q) < 0) {
-                return $secret;
-            }
-
-            $k = $v->clone()->append("\x00")->hash()->hmac($this->algo, $k);
-            $v = $v->clone()->hash()->hmac($this->algo, $k);
+            $k = hash_hmac($this->algo, $v . "\x00", $k, true);
+            $v = hash_hmac($this->algo, $v, $k, true);
         }
-    }
 
-    /**
-     * @return int
-     */
-    private function hashAlgoBitLen(): int
-    {
-        return self::HASH_ALGO[$this->algo];
+        throw new ECDSA_Exception('Failed to generate RFC6979 randomK value');
     }
 }

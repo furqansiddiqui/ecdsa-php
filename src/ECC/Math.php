@@ -14,6 +14,8 @@ declare(strict_types=1);
 
 namespace FurqanSiddiqui\ECDSA\ECC;
 
+use FurqanSiddiqui\ECDSA\Exception\MathException;
+
 /**
  * Class Math
  * @package FurqanSiddiqui\ECDSA\ECC
@@ -21,18 +23,19 @@ namespace FurqanSiddiqui\ECDSA\ECC;
 class Math
 {
     /**
-     * @param $a
-     * @param $p
+     * @param \GMP $a
+     * @param \GMP $p
      * @return array|null
+     * @throws \FurqanSiddiqui\ECDSA\Exception\MathException
      */
-    public static function sqrt($a, $p): ?array
+    public static function gmpSqrt(\GMP $a, \GMP $p): ?array
     {
         if (gmp_legendre($a, $p) !== 1) {
             return null;
         }
 
         if (gmp_strval(gmp_mod($p, gmp_init(4, 10)), 10) !== '3') {
-            throw new \LogicException("P % 4 != 3 , this isn't supported");
+            throw new MathException("P % 4 != 3 , this isn't supported");
         }
 
         $sqrt1 = gmp_powm($a, gmp_div_q(gmp_add($p, gmp_init(1, 10)), gmp_init(4, 10)), $p);
@@ -40,18 +43,23 @@ class Math
         return [$sqrt1, $sqrt2];
     }
 
-    public static function bcRightShift(string $num, int $pos): string
+    /**
+     * @param \GMP $num
+     * @param int $n
+     * @return \GMP
+     */
+    public static function gmpShiftRight(\GMP $num, int $n): \GMP
     {
-        return bcdiv($num, bcpow("2", strval($pos), 0), 0);
+        return gmp_div_q($num, gmp_pow(2, $n));
     }
 
     /**
-     * @param string $num
-     * @param int $pos
-     * @return string
+     * @param \GMP $num
+     * @param int $n
+     * @return \GMP
      */
-    public static function bcLeftShift(string $num, int $pos): string
+    public static function gmpShiftLeft(\GMP $num, int $n): \GMP
     {
-        return bcmul($num, bcpow("2", strval($pos), 0), 0);
+        return gmp_mul($num, gmp_pow(2, $n));
     }
 }
