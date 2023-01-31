@@ -57,7 +57,6 @@ class PublicKey
         ?string                $compressedPrefix = null,
     )
     {
-
         $this->prefix = !$compressedPrefix ?
             gmp_strval(gmp_mod(gmp_init($this->y, 16), gmp_init(2, 10))) === "0" ? "02" : "03" : $compressedPrefix;
     }
