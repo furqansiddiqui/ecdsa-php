@@ -14,10 +14,22 @@ declare(strict_types=1);
 
 namespace FurqanSiddiqui\ECDSA\Signature;
 
+use Comely\Buffer\AbstractByteArray;
+
 /**
  * Interface SignatureInterface
  * @package FurqanSiddiqui\ECDSA\Signature
  */
 interface SignatureInterface
 {
+    /**
+     * @param string|\Comely\Buffer\AbstractByteArray $signature
+     * @return static
+     */
+    public static function fromDER(string|AbstractByteArray $signature): static;
+
+    /**
+     * @return \Comely\Buffer\AbstractByteArray
+     */
+    public function getDER(): AbstractByteArray;
 }

@@ -16,7 +16,10 @@ namespace FurqanSiddiqui\ECDSA\Signature;
 
 use Comely\Buffer\AbstractByteArray;
 use Comely\Buffer\Buffer;
+use Comely\Buffer\Exception\ByteReaderUnderflowException;
 use FurqanSiddiqui\ECDSA\ECC\Point;
+use FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception;
+use FurqanSiddiqui\ECDSA\Exception\SignatureException;
 
 /**
  * Class Signature
@@ -27,46 +30,105 @@ class Signature implements SignatureInterface
     /**
      * @param \Comely\Buffer\AbstractByteArray $r
      * @param \Comely\Buffer\AbstractByteArray $s
-     * @param \FurqanSiddiqui\ECDSA\ECC\Point $curvePointR
-     * @param \Comely\Buffer\AbstractByteArray $k
+     * @param int $recoveryId
+     * @param \FurqanSiddiqui\ECDSA\ECC\Point|null $curvePointR
+     * @param \Comely\Buffer\AbstractByteArray|null $k
      */
     public function __construct(
-        public readonly AbstractByteArray $r,
-        public readonly AbstractByteArray $s,
-        public readonly Point             $curvePointR,
-        public readonly AbstractByteArray $k)
+        public readonly AbstractByteArray      $r,
+        public readonly AbstractByteArray      $s,
+        public readonly int                    $recoveryId = -1,
+        public readonly null|Point             $curvePointR = null,
+        public readonly null|AbstractByteArray $k = null)
     {
     }
 
     /**
+     * @param string|\Comely\Buffer\AbstractByteArray $signature
+     * @return static
+     * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception
+     * @throws \FurqanSiddiqui\ECDSA\Exception\SignatureException
+     */
+    public static function fromDER(string|AbstractByteArray $signature): static
+    {
+        if (is_string($signature)) {
+            $signature = new Buffer(hex2bin($signature));
+        }
+
+        try {
+            $parse = $signature->read();
+            $parse->reset();
+            if ($parse->first(1) !== "\x30") {
+                throw new SignatureException("Invalid DER signature compound structure");
+            }
+
+            $dataLen = $parse->readUInt8();
+            if ($signature->len() !== $dataLen + 2) {
+                throw new SignatureException("Incomplete signature");
+            }
+
+            if ($parse->next(1) !== "\x02") {
+                throw new ECDSA_Exception(
+                    sprintf('Expected "\x02" byte at position %d, got "\x%s"', $parse->pos(), bin2hex($parse->lookBehind(1)))
+                );
+            }
+
+            $r = ltrim($parse->next($parse->readUInt8()), "\0");
+
+            if ($parse->next(1) !== "\x02") {
+                throw new ECDSA_Exception(
+                    sprintf('Expected "\x02" byte at position %d, got "\x%s"', $parse->pos(), bin2hex($parse->lookBehind(1)))
+                );
+            }
+
+            $s = ltrim($parse->next($parse->readUInt8()), "\0");
+        } catch (ByteReaderUnderflowException) {
+            throw new SignatureException('Ran out of bytes while parsing DER signature');
+        }
+
+        if (!$parse->isEnd()) {
+            throw new SignatureException('DER signature contains unnecessary bytes');
+        }
+
+        return new static(new Buffer($r), new Buffer($s));
+    }
+
+    /**
+     * @param int $paddedIntegerSize
      * @return \Comely\Buffer\AbstractByteArray
      */
-    public function getDER(): AbstractByteArray
+    public function getDER(int $paddedIntegerSize = 0): AbstractByteArray
     {
-        $der = new Buffer();
-
         // Prepare R
-        $r = new Buffer($this->r->raw());
-        if (str_starts_with(gmp_strval(gmp_init($r->toBase16(false), 16), 2), "1")) {
-            $r->prepend("\x00");
+        $r = $this->r->raw();
+        if ($paddedIntegerSize > 0 && strlen($r) < $paddedIntegerSize) {
+            $r = str_pad($r, $paddedIntegerSize, "\0", STR_PAD_LEFT);
         }
 
-        $der->append("\x02");
-        $der->append(decbin($r->len()));
-        $der->append($r);
+        if (ord($r[0]) >= 0x80) {
+            // https://www.oreilly.com/library/view/programming-bitcoin/9781492031482/ch04.html
+            $r = "\0" . $r;
+        }
 
         // Prepare S
-        $s = new Buffer($this->s->raw());
-        if (str_starts_with(gmp_strval(gmp_init($s->toBase16(false), 16), 2), "1")) {
-            $s->prepend("\x00");
+        $s = $this->s->raw();
+        if ($paddedIntegerSize > 0 && strlen($r) < $paddedIntegerSize) {
+            $s = str_pad($s, $paddedIntegerSize, "\0", STR_PAD_LEFT);
         }
 
-        $der->append("\x02");
-        $der->append(decbin($s->len()));
-        $der->append($s);
+        if (ord($s[0]) >= 0x80) {
+            $s = "\0" . $s;
+        }
 
-        // DER prefix
-        $der->prepend(decbin($der->len()));
+        // DER Buffer
+        $der = new Buffer();
+        $der->append("\x02");
+        $der->appendUInt8(strlen($r));
+        $der->append($r);
+        $der->append("\x02");
+        $der->appendUInt8(strlen($s));
+        $der->append($s);
+        $der->prependUInt8($der->len());
         $der->prepend("\x30");
         return $der->readOnly();
     }
