@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace FurqanSiddiqui\ECDSA;
 
 use FurqanSiddiqui\ECDSA\Curves\Secp256k1;
+use FurqanSiddiqui\ECDSA\Curves\Secp256k1_RPC;
 
 /**
  * Class ECDSA
@@ -25,8 +26,18 @@ class ECDSA
     /**
      * @return Secp256k1
      */
-    public static function Secp256k1(): Secp256k1
+    public static function Secp256k1_GMP(): Secp256k1
     {
         return Secp256k1::getInstance();
+    }
+
+    /**
+     * @param string $host
+     * @param int $port
+     * @return \FurqanSiddiqui\ECDSA\Curves\Secp256k1_RPC
+     */
+    public static function Secp256k1_RPC(string $host, int $port): Secp256k1_RPC
+    {
+        return new Secp256k1_RPC($host, $port);
     }
 }
