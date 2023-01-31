@@ -17,7 +17,8 @@
     "ext-openssl": "*",
     "ext-bcmath": "*",
     "ext-gmp": "*",
-    "comely-io/buffer-php": "^0.1.1"
+    "ext-curl": "*",
+    "comely-io/buffer-php": "^0.1.6"
   },
   "autoload": {
     "psr-4": {
