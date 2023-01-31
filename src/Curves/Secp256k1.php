@@ -20,6 +20,7 @@ use FurqanSiddiqui\ECDSA\ECC\AbstractGMPCurve;
 use FurqanSiddiqui\ECDSA\ECC\Math;
 use FurqanSiddiqui\ECDSA\ECC\PublicKey;
 use FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception;
+use FurqanSiddiqui\ECDSA\Exception\SignatureException;
 use FurqanSiddiqui\ECDSA\Signature\Rfc6979;
 use FurqanSiddiqui\ECDSA\Signature\Signature;
 use FurqanSiddiqui\ECDSA\Signature\SignatureInterface;
@@ -38,6 +39,15 @@ class Secp256k1 extends AbstractGMPCurve
     public const ORDER = "115792089237316195423570985008687907852837564279074904382605163141518161494337";
     public const Gx = "55066263022277343669578718895168534326250603453777594175500187360389116729240";
     public const Gy = "32670510020758816978083085130507043184471273380659243275938904335757337482424";
+
+    /**
+     * @param \Comely\Buffer\AbstractByteArray $privateKey
+     * @return bool
+     */
+    public function validatePrivateKey(AbstractByteArray $privateKey): bool
+    {
+        return $privateKey->len() === 32;
+    }
 
     /**
      * @param \Comely\Buffer\AbstractByteArray $privateKey
@@ -106,26 +116,6 @@ class Secp256k1 extends AbstractGMPCurve
     }
 
     /**
-     * @param \Comely\Buffer\AbstractByteArray $publicKey
-     * @return \FurqanSiddiqui\ECDSA\ECC\PublicKey
-     * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception
-     */
-    public function uncompressedPublicKey(AbstractByteArray $publicKey): PublicKey
-    {
-        $publicKey = $publicKey->toBase16(false);
-        if (strlen($publicKey) !== 130) {
-            throw new ECDSA_Exception('DER public key must be 65 byte long');
-        }
-
-        $prefix = substr($publicKey, 0, 2);
-        if ($prefix !== "04") {
-            throw new ECDSA_Exception('DER public key prefix must be "04"');
-        }
-
-        return new PublicKey(substr($publicKey, 2, 64), substr($publicKey, 66));
-    }
-
-    /**
      * @param \Comely\Buffer\AbstractByteArray $privateKey
      * @param \Comely\Buffer\AbstractByteArray $msgHash
      * @param \Comely\Buffer\AbstractByteArray|null $randomK
@@ -134,6 +124,12 @@ class Secp256k1 extends AbstractGMPCurve
      */
     public function sign(AbstractByteArray $privateKey, AbstractByteArray $msgHash, ?AbstractByteArray $randomK = null): Signature
     {
+        if ($privateKey->len() !== 32) {
+            throw new SignatureException('Private key must be of 32 bytes');
+        } elseif ($msgHash->len() !== 32) {
+            throw new SignatureException('Message hash must be 32 bytes');
+        }
+
         $privateKeyInt = gmp_init($privateKey->toBase16(false), 16);
         $msgHashInt = gmp_init($msgHash->toBase16(false), 16);
 
@@ -146,14 +142,11 @@ class Secp256k1 extends AbstractGMPCurve
 
         $randomKInt = gmp_init($randomK->toBase16(false), 16);
         $n = $this->order;
-
-        // First part of the signature (R).
         $generator = $this->generator();
         $ptR = $generator->mul($randomKInt);
-        $r = gmp_strval($ptR->x, 16);
-        while (strlen($r) < 64) {
-            $r = "0" . $r;
-        }
+
+        // First part of the signature (R).
+        $r = str_pad(gmp_strval($ptR->x, 16), 64, "\0", STR_PAD_LEFT);
 
         // Second part of the signature (S).
         $s = gmp_mod(gmp_mul(gmp_invert($randomKInt, $n), gmp_add($msgHashInt, gmp_mul($privateKeyInt, gmp_init($r, 16)))), $n);
@@ -164,7 +157,7 @@ class Secp256k1 extends AbstractGMPCurve
         }
 
         $s = gmp_strval($s, 16);
-        return new Signature(Buffer::fromBase16($r), Buffer::fromBase16($s), $ptR, $randomK);
+        return new Signature(Buffer::fromBase16($r), Buffer::fromBase16($s), -1);
     }
 
     /**
@@ -194,33 +187,23 @@ class Secp256k1 extends AbstractGMPCurve
     /**
      * @param \FurqanSiddiqui\ECDSA\Signature\SignatureInterface $signature
      * @param \Comely\Buffer\AbstractByteArray $msgHash
-     * @param int $flag
+     * @param int $attempt
      * @return \FurqanSiddiqui\ECDSA\ECC\PublicKey
      * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception
      */
-    public function recoverPublicKeyFromSignature(SignatureInterface $signature, AbstractByteArray $msgHash, int $flag): PublicKey
+    public function recoverPublicKeyFromSignature(SignatureInterface $signature, AbstractByteArray $msgHash, int $attempt): PublicKey
     {
-        $R = $signature->r->toBase16(false);
-        $S = $signature->s->toBase16(false);
+        $r = $signature->r->toBase16(false);
+        $s = $signature->s->toBase16(false);
         $msgHashInt = gmp_init($msgHash->toBase16(false), 16);
 
-        if ($flag < 27 || $flag >= 35) {
-            throw new ECDSA_Exception('Invalid flag');
-        }
-
-        if ($flag >= 31) {
-            $flag -= 4;
-        }
-
-        $recId = $flag - 27;
-
         // Step 1.1
-        $x = gmp_add(gmp_init($R, 16), gmp_mul($this->order, gmp_div_q(gmp_init($recId, 10), gmp_init(2, 10))));
+        $x = gmp_add(gmp_init($r, 16), gmp_mul($this->order, gmp_div_q(gmp_init($attempt, 10), gmp_init(2, 10))));
 
         // Step 1.3
         try {
             $yPubKey = $this->getPublicKeyFromCompressed(
-                Buffer::fromBase16(gmp_strval($x, 16))->prepend($flag % 2 === 1 ? "\x02" : "\x03")
+                Buffer::fromBase16(gmp_strval($x, 16))->prepend($attempt % 2 === 1 ? "\x02" : "\x03")
             );
 
             $y = gmp_init($yPubKey->y, 16);
@@ -234,9 +217,9 @@ class Secp256k1 extends AbstractGMPCurve
         $eG = $this->generator()->mul($msgHashInt);
         $eGY = gmp_mod(gmp_neg($eG->y), $this->prime);
         $eG = $this->getPoint($eG->x, $eGY);
-        $SR = $ptR->mul(gmp_init($S, 16));
+        $SR = $ptR->mul(gmp_init($s, 16));
         $SReG = $SR->add($eG);
-        $pubKey = $SReG->mul(gmp_invert(gmp_init($R, 16), $this->order));
+        $pubKey = $SReG->mul(gmp_invert(gmp_init($r, 16), $this->order));
         $pubKeyX = str_pad(gmp_strval($pubKey->x, 16), 64, "0", STR_PAD_LEFT);
         $pubKeyY = str_pad(gmp_strval($pubKey->y, 16), 64, "0", STR_PAD_LEFT);
         $publicKey = new PublicKey($pubKeyX, $pubKeyY);
@@ -245,48 +228,5 @@ class Secp256k1 extends AbstractGMPCurve
         }
 
         throw new ECDSA_Exception('Public key cannot be recovered with given arguments');
-    }
-
-    /**
-     * @param \FurqanSiddiqui\ECDSA\ECC\PublicKey $publicKey
-     * @param \FurqanSiddiqui\ECDSA\Signature\Signature $signature
-     * @param \Comely\Buffer\AbstractByteArray $msgHash
-     * @param bool $useCompressed
-     * @return int
-     * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception
-     */
-    public function findRecoveryId(PublicKey $publicKey, Signature $signature, AbstractByteArray $msgHash, bool $useCompressed): int
-    {
-        $matchPubKeyHex = $useCompressed ? $publicKey->getCompressed() : $publicKey->getUnCompressed();
-        $matchPubKeyHex = $matchPubKeyHex->toBase16(false);
-
-        $finalFlag = 0;
-        for ($i = 0; $i < 4; $i++) {
-            $flag = 27;
-            if ($useCompressed === true) {
-                $flag += 4;
-            }
-
-            $flag += $i;
-            try {
-                $recoveredPubKey = $this->recoverPublicKeyFromSignature($signature, $msgHash, $flag);
-            } catch (\Exception) {
-            }
-
-            if (isset($recoveredPubKey)) {
-                $recPubKeyHex = $useCompressed ? $recoveredPubKey->getCompressed() : $recoveredPubKey->getUnCompressed();
-                $recPubKeyHex = $recPubKeyHex->toBase16(false);
-                if (hash_equals($matchPubKeyHex, $recPubKeyHex)) {
-                    $finalFlag = $flag;
-                    break;
-                }
-            }
-        }
-
-        if ($finalFlag) {
-            return $finalFlag;
-        }
-
-        throw new ECDSA_Exception('Could not find valid recovery Id for signature');
     }
 }
