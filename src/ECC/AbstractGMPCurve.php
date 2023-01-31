@@ -92,10 +92,4 @@ abstract class AbstractGMPCurve implements EllipticCurveInterface
      * @return \FurqanSiddiqui\ECDSA\ECC\PublicKey
      */
     abstract public function getPublicKeyFromCompressed(AbstractByteArray $compressed): PublicKey;
-
-    /**
-     * @param \Comely\Buffer\AbstractByteArray $publicKey
-     * @return \FurqanSiddiqui\ECDSA\ECC\PublicKey
-     */
-    abstract public function uncompressedPublicKey(AbstractByteArray $publicKey): PublicKey;
 }

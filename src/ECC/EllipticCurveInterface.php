@@ -25,6 +25,12 @@ interface EllipticCurveInterface
 {
     /**
      * @param \Comely\Buffer\AbstractByteArray $privateKey
+     * @return bool
+     */
+    public function validatePrivateKey(AbstractByteArray $privateKey): bool;
+
+    /**
+     * @param \Comely\Buffer\AbstractByteArray $privateKey
      * @return \FurqanSiddiqui\ECDSA\ECC\PublicKey
      */
     public function generatePublicKey(AbstractByteArray $privateKey): PublicKey;
@@ -34,12 +40,6 @@ interface EllipticCurveInterface
      * @return \FurqanSiddiqui\ECDSA\ECC\PublicKey
      */
     public function getPublicKeyFromCompressed(AbstractByteArray $compressed): PublicKey;
-
-    /**
-     * @param \Comely\Buffer\AbstractByteArray $publicKey
-     * @return \FurqanSiddiqui\ECDSA\ECC\PublicKey
-     */
-    public function uncompressedPublicKey(AbstractByteArray $publicKey): PublicKey;
 
     /**
      * @param \Comely\Buffer\AbstractByteArray $privateKey
@@ -60,17 +60,8 @@ interface EllipticCurveInterface
     /**
      * @param \FurqanSiddiqui\ECDSA\Signature\Signature $signature
      * @param \Comely\Buffer\AbstractByteArray $msgHash
-     * @param int $flag
+     * @param int $attempt
      * @return \FurqanSiddiqui\ECDSA\ECC\PublicKey
      */
-    public function recoverPublicKeyFromSignature(Signature $signature, AbstractByteArray $msgHash, int $flag): PublicKey;
-
-    /**
-     * @param \FurqanSiddiqui\ECDSA\ECC\PublicKey $publicKey
-     * @param \FurqanSiddiqui\ECDSA\Signature\Signature $signature
-     * @param \Comely\Buffer\AbstractByteArray $msgHash
-     * @param bool $useCompressed
-     * @return int
-     */
-    public function findRecoveryId(PublicKey $publicKey, Signature $signature, AbstractByteArray $msgHash, bool $useCompressed): int;
+    public function recoverPublicKeyFromSignature(Signature $signature, AbstractByteArray $msgHash, int $attempt): PublicKey;
 }
