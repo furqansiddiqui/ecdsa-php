@@ -14,7 +14,9 @@ declare(strict_types=1);
 
 namespace FurqanSiddiqui\ECDSA\ECC;
 
+use Comely\Buffer\AbstractByteArray;
 use Comely\Buffer\Buffer;
+use FurqanSiddiqui\ECDSA\Exception\KeyPairException;
 
 /**
  * Class PublicKey
@@ -24,6 +26,25 @@ class PublicKey
 {
     /** @var string */
     public readonly string $prefix;
+
+    /**
+     * @param \Comely\Buffer\AbstractByteArray $publicKey
+     * @return static
+     * @throws \FurqanSiddiqui\ECDSA\Exception\KeyPairException
+     */
+    public static function fromDER(AbstractByteArray $publicKey): static
+    {
+        $bytes = $publicKey->raw();
+        if ($bytes[0] === "\x04") {
+            if ($publicKey->len() !== 65) {
+                throw new KeyPairException('DER public key must be 65 bytes long');
+            }
+
+            return new static(bin2hex(substr($bytes, 1, 32)), bin2hex(substr($bytes, 33)));
+        }
+
+        throw new KeyPairException('Invalid DER serialized public key');
+    }
 
     /**
      * @param string $x
@@ -67,7 +88,7 @@ class PublicKey
      * @param \FurqanSiddiqui\ECDSA\ECC\PublicKey $pub2
      * @return int
      */
-    public function verifyMatch(PublicKey $pub2): int
+    public function compare(PublicKey $pub2): int
     {
         if (hash_equals($this->x, $pub2->x)) {
             if (hash_equals($this->y, $pub2->y)) {
