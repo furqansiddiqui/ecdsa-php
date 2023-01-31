@@ -23,10 +23,10 @@ use Comely\Buffer\AbstractByteArray;
 interface SignatureInterface
 {
     /**
-     * @param string|\Comely\Buffer\AbstractByteArray $signature
+     * @param \Comely\Buffer\AbstractByteArray $signature
      * @return static
      */
-    public static function fromDER(string|AbstractByteArray $signature): static;
+    public static function fromDER(AbstractByteArray $signature): static;
 
     /**
      * @return \Comely\Buffer\AbstractByteArray

@@ -16,8 +16,8 @@ namespace FurqanSiddiqui\ECDSA\Signature;
 
 use Comely\Buffer\AbstractByteArray;
 use Comely\Buffer\Buffer;
+use Comely\Buffer\Bytes32;
 use Comely\Buffer\Exception\ByteReaderUnderflowException;
-use FurqanSiddiqui\ECDSA\ECC\Point;
 use FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception;
 use FurqanSiddiqui\ECDSA\Exception\SignatureException;
 
@@ -31,30 +31,55 @@ class Signature implements SignatureInterface
      * @param \Comely\Buffer\AbstractByteArray $r
      * @param \Comely\Buffer\AbstractByteArray $s
      * @param int $recoveryId
-     * @param \FurqanSiddiqui\ECDSA\ECC\Point|null $curvePointR
-     * @param \Comely\Buffer\AbstractByteArray|null $k
      */
     public function __construct(
-        public readonly AbstractByteArray      $r,
-        public readonly AbstractByteArray      $s,
-        public readonly int                    $recoveryId = -1,
-        public readonly null|Point             $curvePointR = null,
-        public readonly null|AbstractByteArray $k = null)
+        public readonly AbstractByteArray $r,
+        public readonly AbstractByteArray $s,
+        public readonly int               $recoveryId = -1)
     {
     }
 
     /**
-     * @param string|\Comely\Buffer\AbstractByteArray $signature
+     * @return array
+     */
+    public function __debugInfo(): array
+    {
+        return [
+            "r" => $this->r->toBase16(true),
+            "s" => $this->s->toBase16(true),
+            "v" => $this->recoveryId > -1 ? $this->recoveryId : null
+        ];
+    }
+
+    /**
+     * @param \Comely\Buffer\AbstractByteArray $signature
+     * @return static
+     * @throws \Comely\Buffer\Exception\ByteReaderUnderflowException
+     * @throws \FurqanSiddiqui\ECDSA\Exception\SignatureException
+     */
+    public static function fromCompact(AbstractByteArray $signature): static
+    {
+        if ($signature->len() !== 65) {
+            throw new SignatureException(sprintf("Compact signatures must be of 65 bytes, got %d", $signature->len()));
+        }
+
+        $parse = $signature->read();
+        $v = $parse->readUInt8();
+        return new static(
+            new Bytes32($parse->next(32)),
+            new Bytes32($parse->next(32)),
+            $v
+        );
+    }
+
+    /**
+     * @param \Comely\Buffer\AbstractByteArray $signature
      * @return static
      * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception
      * @throws \FurqanSiddiqui\ECDSA\Exception\SignatureException
      */
-    public static function fromDER(string|AbstractByteArray $signature): static
+    public static function fromDER(AbstractByteArray $signature): static
     {
-        if (is_string($signature)) {
-            $signature = new Buffer(hex2bin($signature));
-        }
-
         try {
             $parse = $signature->read();
             $parse->reset();
