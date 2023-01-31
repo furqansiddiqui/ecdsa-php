@@ -22,15 +22,23 @@ use Comely\Buffer\Buffer;
  */
 class PublicKey
 {
+    /** @var string */
+    public readonly string $prefix;
+
     /**
-     * @param string $x as base16/hex
-     * @param string $y as base16/hex
+     * @param string $x
+     * @param string $y
+     * @param string|null $compressedPrefix
      */
     public function __construct(
         public readonly string $x,
-        public readonly string $y
+        public readonly string $y,
+        ?string                $compressedPrefix = null,
     )
     {
+
+        $this->prefix = !$compressedPrefix ?
+            gmp_strval(gmp_mod(gmp_init($this->y, 16), gmp_init(2, 10))) === "0" ? "02" : "03" : $compressedPrefix;
     }
 
     /**
@@ -46,7 +54,33 @@ class PublicKey
      */
     public function getCompressed(): Buffer
     {
-        $prefix = gmp_strval(gmp_mod(gmp_init($this->y, 16), gmp_init(2, 10))) === "0" ? "02" : "03";
-        return (new Buffer(hex2bin($prefix . $this->x)))->readOnly();
+        return (new Buffer(hex2bin($this->prefix . $this->x)))->readOnly();
+    }
+
+    /**
+     * Comparison with another Public key instance, i.e. compare a signature recovered public key.
+     * Return values are:
+     * 0 = Both public keys are identical
+     * -3 = Compressed prefix does not match (between 02 and 03)
+     * -2 = Public key Y does not match
+     * -1 = Public key X does not match
+     * @param \FurqanSiddiqui\ECDSA\ECC\PublicKey $pub2
+     * @return int
+     */
+    public function verifyMatch(PublicKey $pub2): int
+    {
+        if (hash_equals($this->x, $pub2->x)) {
+            if (hash_equals($this->y, $pub2->y)) {
+                if (hash_equals($this->prefix, $pub2->prefix)) {
+                    return 0;
+                }
+
+                return -3;
+            }
+
+            return -2;
+        }
+
+        return -1;
     }
 }
