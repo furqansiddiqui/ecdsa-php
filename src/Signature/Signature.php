@@ -119,6 +119,14 @@ class Signature implements SignatureInterface
     }
 
     /**
+     * @return \Comely\Buffer\AbstractByteArray
+     */
+    public function getCompact(): AbstractByteArray
+    {
+        return (new Buffer(chr($this->recoveryId) . $this->r . $this->s));
+    }
+
+    /**
      * @param int $paddedIntegerSize
      * @return \Comely\Buffer\AbstractByteArray
      */

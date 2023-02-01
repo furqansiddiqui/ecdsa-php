@@ -152,10 +152,39 @@ class Secp256k1_RPC implements EllipticCurveInterface
         // TODO: Implement verify() method.
     }
 
-    public function recoverPublicKeyFromSignature(Signature $signature, AbstractByteArray $msgHash, int $attempt): PublicKey
+    /**
+     * @param \FurqanSiddiqui\ECDSA\Signature\Signature $signature
+     * @param \Comely\Buffer\AbstractByteArray $msgHash
+     * @param int|null $recId
+     * @return \FurqanSiddiqui\ECDSA\ECC\PublicKey
+     * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception
+     * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_RPC_Exception
+     * @throws \FurqanSiddiqui\ECDSA\Exception\SignatureException
+     */
+    public function recoverPublicKeyFromSignature(Signature $signature, AbstractByteArray $msgHash, ?int $recId = null): PublicKey
     {
-        throw new \Exception('');
-        // TODO: Implement recoverPublicKeyFromSignature() method.
+        if (is_int($recId) && $signature->recoveryId !== $recId) {
+            $signature = new Signature($signature->r, $signature->s, $recId);
+        }
+
+        if (!($signature->recoveryId > -1)) {
+            throw new SignatureException('Signature does not have recovery id set');
+        }
+
+        if ($msgHash->len() !== 32) {
+            throw new SignatureException('Message hash must be 32 bytes');
+        }
+
+        $result = $this->sendCurlRequest("ecdsaRecover", [$signature->getCompact()->toBase16(false), $msgHash->toBase16(false)]);
+        if (!is_array($result) || !isset($result["compressed"]) || !isset($result["unCompressed"])) {
+            throw new ECDSA_Exception('Bad response structure from RPC createPublicKey method');
+        }
+
+        return new PublicKey(
+            substr($result["unCompressed"], 2, 64),
+            substr($result["unCompressed"], 66, 128),
+            substr($result["compressed"], 0, 2)
+        );
     }
 
     /**

@@ -187,23 +187,29 @@ class Secp256k1 extends AbstractGMPCurve
     /**
      * @param \FurqanSiddiqui\ECDSA\Signature\SignatureInterface $signature
      * @param \Comely\Buffer\AbstractByteArray $msgHash
-     * @param int $attempt
+     * @param int|null $recId
      * @return \FurqanSiddiqui\ECDSA\ECC\PublicKey
      * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception
      */
-    public function recoverPublicKeyFromSignature(SignatureInterface $signature, AbstractByteArray $msgHash, int $attempt): PublicKey
+    public function recoverPublicKeyFromSignature(SignatureInterface $signature, AbstractByteArray $msgHash, ?int $recId = null): PublicKey
     {
         $r = $signature->r->toBase16(false);
         $s = $signature->s->toBase16(false);
+        $recId = is_int($recId) && $recId >= 0 ? $recId : $signature->recoveryId;
+        if ($recId < 0) {
+            throw new SignatureException('Signature does not have a recovery Id');
+        }
+
+        $recId -= $recId;
         $msgHashInt = gmp_init($msgHash->toBase16(false), 16);
 
         // Step 1.1
-        $x = gmp_add(gmp_init($r, 16), gmp_mul($this->order, gmp_div_q(gmp_init($attempt, 10), gmp_init(2, 10))));
+        $x = gmp_add(gmp_init($r, 16), gmp_mul($this->order, gmp_div_q(gmp_init($recId, 10), gmp_init(2, 10))));
 
         // Step 1.3
         try {
             $yPubKey = $this->getPublicKeyFromCompressed(
-                Buffer::fromBase16(gmp_strval($x, 16))->prepend($attempt % 2 === 1 ? "\x02" : "\x03")
+                Buffer::fromBase16(gmp_strval($x, 16))->prepend($recId % 2 === 1 ? "\x02" : "\x03")
             );
 
             $y = gmp_init($yPubKey->y, 16);

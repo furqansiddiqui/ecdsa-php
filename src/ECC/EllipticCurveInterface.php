@@ -60,8 +60,8 @@ interface EllipticCurveInterface
     /**
      * @param \FurqanSiddiqui\ECDSA\Signature\Signature $signature
      * @param \Comely\Buffer\AbstractByteArray $msgHash
-     * @param int $attempt
+     * @param int|null $recId
      * @return \FurqanSiddiqui\ECDSA\ECC\PublicKey
      */
-    public function recoverPublicKeyFromSignature(Signature $signature, AbstractByteArray $msgHash, int $attempt): PublicKey;
+    public function recoverPublicKeyFromSignature(Signature $signature, AbstractByteArray $msgHash, ?int $recId = null): PublicKey;
 }

@@ -119,7 +119,7 @@ class KeyPair
      */
     public function verifyPublicKey(Signature $sig, AbstractByteArray $msgHash, ?int $recId = null): bool
     {
-        $recId = $recId && $recId >= 0 ? $recId : $sig->recoveryId;
+        $recId = is_int($recId) && $recId >= 0 ? $recId : $sig->recoveryId;
         if ($recId < 0) {
             throw new SignatureException('Signature does not have a recovery Id');
         }
