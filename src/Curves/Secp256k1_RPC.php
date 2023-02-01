@@ -99,12 +99,6 @@ class Secp256k1_RPC implements EllipticCurveInterface
         );
     }
 
-    public function getPublicKeyFromCompressed(AbstractByteArray $compressed): PublicKey
-    {
-        throw new \Exception('');
-        // TODO: Implement getPublicKeyFromCompressed() method.
-    }
-
     /**
      * @param \Comely\Buffer\AbstractByteArray $privateKey
      * @param \Comely\Buffer\AbstractByteArray $msgHash
@@ -146,10 +140,32 @@ class Secp256k1_RPC implements EllipticCurveInterface
         return Buffer::fromBase16($result);
     }
 
+    /**
+     * @param \FurqanSiddiqui\ECDSA\ECC\PublicKey $publicKey
+     * @param \FurqanSiddiqui\ECDSA\Signature\Signature $signature
+     * @param \Comely\Buffer\AbstractByteArray $msgHash
+     * @return bool
+     * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception
+     * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_RPC_Exception
+     * @throws \FurqanSiddiqui\ECDSA\Exception\SignatureException
+     */
     public function verify(PublicKey $publicKey, Signature $signature, AbstractByteArray $msgHash): bool
     {
-        throw new \Exception('');
-        // TODO: Implement verify() method.
+        if ($msgHash->len() !== 32) {
+            throw new SignatureException('Message hash must be 32 bytes');
+        }
+
+        $result = $this->sendCurlRequest("ecdsaVerify", [
+            $publicKey->getUnCompressed()->toBase16(),
+            $signature->getDER()->toBase16(),
+            $msgHash->toBase16(false)
+        ]);
+
+        if (!is_bool($result)) {
+            throw new ECDSA_RPC_Exception(sprintf('Expected "bool" from "ecdsaSign" call, got "%s"', gettype($result)));
+        }
+
+        return $result;
     }
 
     /**

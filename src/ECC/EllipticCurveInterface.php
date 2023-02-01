@@ -36,12 +36,6 @@ interface EllipticCurveInterface
     public function generatePublicKey(AbstractByteArray $privateKey): PublicKey;
 
     /**
-     * @param \Comely\Buffer\AbstractByteArray $compressed
-     * @return \FurqanSiddiqui\ECDSA\ECC\PublicKey
-     */
-    public function getPublicKeyFromCompressed(AbstractByteArray $compressed): PublicKey;
-
-    /**
      * @param \Comely\Buffer\AbstractByteArray $privateKey
      * @param \Comely\Buffer\AbstractByteArray $msgHash
      * @param \Comely\Buffer\AbstractByteArray|null $randomK
