@@ -144,9 +144,15 @@ class Secp256k1 extends AbstractGMPCurve
         $n = $this->order;
         $generator = $this->generator();
         $ptR = $generator->mul($randomKInt);
+        if (gmp_cmp($ptR->x, 0) === 0) {
+            throw new SignatureException('Signature r (Point.x) === 0');
+        }
 
         // Second part of the signature (S).
         $s = gmp_mod(gmp_mul(gmp_invert($randomKInt, $n), gmp_add($msgHashInt, gmp_mul($privateKeyInt, $ptR->x))), $n);
+        if (gmp_cmp($s, 0) === 0) {
+            throw new SignatureException('Signature s === 0');
+        }
 
         // BIP 62, make sure we use the low-s value
         if (gmp_cmp($s, gmp_div($n, 2)) === 1) {
