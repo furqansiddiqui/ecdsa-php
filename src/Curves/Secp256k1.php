@@ -212,7 +212,7 @@ class Secp256k1 extends AbstractGMPCurve
         // Step 1.3
         try {
             $yPubKey = $this->getPublicKeyFromCompressed(
-                Buffer::fromBase16(gmp_strval($x, 16))->prepend($recId % 2 !== 1 ? "\x02" : "\x03")
+                Buffer::fromBase16(str_pad(gmp_strval($x, 16), 64, "0", STR_PAD_LEFT))->prepend($recId % 2 !== 1 ? "\x02" : "\x03")
             );
 
             $y = gmp_init($yPubKey->y, 16);
