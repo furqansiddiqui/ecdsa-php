@@ -146,7 +146,7 @@ class Secp256k1 extends AbstractGMPCurve
         $ptR = $generator->mul($randomKInt);
 
         // First part of the signature (R).
-        $r = str_pad(gmp_strval($ptR->x, 16), 64, "\0", STR_PAD_LEFT);
+        $r = str_pad(gmp_strval($ptR->x, 16), 64, "0", STR_PAD_LEFT);
 
         // Second part of the signature (S).
         $s = gmp_mod(gmp_mul(gmp_invert($randomKInt, $n), gmp_add($msgHashInt, gmp_mul($privateKeyInt, gmp_init($r, 16)))), $n);
@@ -156,7 +156,7 @@ class Secp256k1 extends AbstractGMPCurve
             $s = gmp_sub($n, $s);
         }
 
-        $s = gmp_strval($s, 16);
+        $s = str_pad(gmp_strval($s, 16), 64, "0", STR_PAD_LEFT);
         return new Signature(Buffer::fromBase16($r), Buffer::fromBase16($s), -1);
     }
 
