@@ -167,7 +167,7 @@ class Secp256k1_RPC implements EllipticCurveInterface
             $signature = new Signature($signature->r, $signature->s, $recId);
         }
 
-        if (!($signature->recoveryId > -1)) {
+        if ($signature->recoveryId < 0 || $signature->recoveryId > 3) {
             throw new SignatureException('Signature does not have recovery id set');
         }
 

@@ -200,7 +200,7 @@ class Secp256k1 extends AbstractGMPCurve
         $r = $signature->r->toBase16(false);
         $s = $signature->s->toBase16(false);
         $recId = is_int($recId) && $recId >= 0 ? $recId : $signature->recoveryId;
-        if ($recId < 0) {
+        if ($recId < 0 || $recId > 3) {
             throw new SignatureException('Signature does not have a recovery Id');
         }
 

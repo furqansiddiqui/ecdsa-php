@@ -115,15 +115,9 @@ class KeyPair
      * @param \Comely\Buffer\AbstractByteArray $msgHash
      * @param int|null $recId
      * @return bool
-     * @throws \FurqanSiddiqui\ECDSA\Exception\SignatureException
      */
     public function verifyPublicKey(Signature $sig, AbstractByteArray $msgHash, ?int $recId = null): bool
     {
-        $recId = is_int($recId) && $recId >= 0 ? $recId : $sig->recoveryId;
-        if ($recId < 0) {
-            throw new SignatureException('Signature does not have a recovery Id');
-        }
-
         $recovered = $this->ecc->recoverPublicKeyFromSignature($sig, $msgHash, $recId);
         return $this->public()->compare($recovered) === 0;
     }
