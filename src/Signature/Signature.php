@@ -180,7 +180,7 @@ class Signature implements SignatureInterface
     {
         if (hash_equals($this->r->toBase16(false), $sig2->r->toBase16(false))) {
             if (hash_equals($this->s->toBase16(false), $sig2->s->toBase16(false))) {
-                if ($this->recoveryId !== $sig2->recoveryId) {
+                if ($this->recoveryId === $sig2->recoveryId) {
                     return 0;
                 }
 
