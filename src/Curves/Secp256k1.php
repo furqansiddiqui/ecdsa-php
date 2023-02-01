@@ -136,7 +136,7 @@ class Secp256k1 extends AbstractGMPCurve
         // use specified K or use Deterministic RNG
         if (!$randomK) {
             // RFC6979
-            $rfc6979 = new Rfc6979("sha256", $privateKeyInt, $msgHashInt);
+            $rfc6979 = new Rfc6979("sha256", $msgHashInt, $privateKeyInt);
             $randomK = $rfc6979->generateK($this->order);
         }
 
@@ -204,7 +204,6 @@ class Secp256k1 extends AbstractGMPCurve
             throw new SignatureException('Signature does not have a recovery Id');
         }
 
-        $recId -= $recId;
         $msgHashInt = gmp_init($msgHash->toBase16(false), 16);
 
         // Step 1.1

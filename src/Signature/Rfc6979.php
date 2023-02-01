@@ -75,17 +75,16 @@ class Rfc6979
     public function generateK(\GMP $q): AbstractByteArray
     {
         $qLen = strlen(gmp_strval($q, 2));
-        $hoLen = static::HASH_ALGO[$this->algo];
-        $roLen = ($qLen + 7) >> 3;
-
-        $bx = hex2bin($this->int2octets($this->privateKey, $roLen) .
-            $this->int2octets($this->message, $roLen));
+        $hLen = static::HASH_ALGO[$this->algo];
+        $rLen = ($qLen + 7) >> 3;
+        $bx = hex2bin($this->int2octets($this->privateKey, $rLen) .
+            $this->int2octets($this->message, $rLen));
 
         // Step B
-        $v = str_repeat("\x01", $hoLen >> 3);
+        $v = str_repeat("\x01", $hLen >> 3);
 
         // Step C
-        $k = str_repeat("\x00", $hoLen >> 3);
+        $k = str_repeat("\x00", $hLen >> 3);
 
         // Step D
         $k = hash_hmac($this->algo, $v . "\x00" . $bx, $k, true);
