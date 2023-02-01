@@ -62,7 +62,7 @@ $pub = PublicKey::fromDER(Buffer::fromBase16("hex-string"))
 |-----------------|----------|-----------------------------------------------------------------------------------------------------------------------------------|
 | getUnCompressed | `Buffer` | Gets DER serialized uncompressed public key. 65 bytes long including prefix of `\x04`.                                            |
 | getCompressed   | `Buffer` | Get DER serialized compressed public key. 33 bytes long including `\x02` or `\x03` prefix.                                        |
-| compare         | `int`    | Compares with another [PublicKey](#PublicKey) instance. Returns `0` if identical OR a negative value is public keys do not match. |
+| compare         | `int`    | Compares with another [PublicKey](#PublicKey) instance. Returns `0` if identical OR a negative value if public keys do not match. |
 
 ## Signature
 
@@ -77,9 +77,10 @@ $pub = PublicKey::fromDER(Buffer::fromBase16("hex-string"))
 | fromDER     | `AbstractByteArray` | Unserializes a DER encoded signature            .                                                                         |
 | fromCompact | `AbstractByteArray` | Unserializes a 65 byte compact signature where first byte is `v` (recovery id) followed by 32 bytes each for `r` and `s`. |
 
-| Method | Returns  | Description                                              |
-|--------|----------|----------------------------------------------------------|
-| getDER | `Buffer` | Returns a DER encoded signature starts with `\x30` byte. |
+| Method  | Returns  | Description                                                                                                                      |
+|---------|----------|----------------------------------------------------------------------------------------------------------------------------------|
+| getDER  | `Buffer` | Returns a DER encoded signature starts with `\x30` byte.                                                                         |
+| compare | `int`    | Compares with another [Signature](#Signature) instance. Returns `0` if identical OR a negative value if signatures do not match. |
 
 ## EllipticCurveInterface
 

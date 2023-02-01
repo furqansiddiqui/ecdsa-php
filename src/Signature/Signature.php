@@ -165,4 +165,31 @@ class Signature implements SignatureInterface
         $der->prepend("\x30");
         return $der->readOnly();
     }
+
+    /**
+     * Comparison with another Signature instance, primary for cross-lib testings
+     * Return values are:
+     * 0 = Both signatures are identical
+     * -3 = Recovery ids do not match
+     * -2 = Signature coordinate S does not match
+     * -1 = Signature coordinate R does not match
+     * @param \FurqanSiddiqui\ECDSA\Signature\Signature $sig2
+     * @return int
+     */
+    public function compare(Signature $sig2): int
+    {
+        if (hash_equals($this->r->toBase16(false), $sig2->r->toBase16(false))) {
+            if (hash_equals($this->s->toBase16(false), $sig2->s->toBase16(false))) {
+                if ($this->recoveryId !== $sig2->recoveryId) {
+                    return 0;
+                }
+
+                return -3;
+            }
+
+            return -2;
+        }
+
+        return -1;
+    }
 }
