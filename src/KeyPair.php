@@ -26,7 +26,6 @@ use FurqanSiddiqui\ECDSA\Signature\Signature;
  */
 class KeyPair
 {
-
     /** @var \FurqanSiddiqui\ECDSA\ECC\PublicKey|null */
     private ?PublicKey $public = null;
 
@@ -38,6 +37,14 @@ class KeyPair
         public readonly EllipticCurveInterface $ecc,
         public readonly AbstractByteArray      $private)
     {
+    }
+
+    /**
+     * @return array
+     */
+    public function __debugInfo(): array
+    {
+        return ["%d bit Private Key", $this->private->len() * 8];
     }
 
     /**
