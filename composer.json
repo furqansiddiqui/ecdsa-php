@@ -18,7 +18,7 @@
     "ext-bcmath": "*",
     "ext-gmp": "*",
     "ext-curl": "*",
-    "comely-io/buffer-php": "^0.1.10"
+    "comely-io/buffer-php": "^0.1.11"
   },
   "autoload": {
     "psr-4": {

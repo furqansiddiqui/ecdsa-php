@@ -53,11 +53,11 @@ class Secp256k1 extends AbstractGMPCurve
         }
 
         $prvInteger = new BigInteger($privateKey);
-        if ($prvInteger->cmp(1) >= 0) {
+        if ($prvInteger->cmp(1) < 0) {
             throw new ECDSA_Exception('Private key integer value is not positive');
         }
 
-        if ($prvInteger->cmp($this->order) <= 0) {
+        if ($prvInteger->cmp($this->order) >= 0) {
             throw new ECDSA_Exception('Private key integer value exceeds Secp256k1::ORDER');
         }
 
