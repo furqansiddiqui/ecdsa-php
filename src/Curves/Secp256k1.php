@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace FurqanSiddiqui\ECDSA\Curves;
 
 use Comely\Buffer\AbstractByteArray;
+use Comely\Buffer\BigInteger;
 use Comely\Buffer\Buffer;
 use FurqanSiddiqui\ECDSA\ECC\AbstractGMPCurve;
 use FurqanSiddiqui\ECDSA\ECC\Math;
@@ -43,10 +44,24 @@ class Secp256k1 extends AbstractGMPCurve
     /**
      * @param \Comely\Buffer\AbstractByteArray $privateKey
      * @return bool
+     * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception
      */
     public function validatePrivateKey(AbstractByteArray $privateKey): bool
     {
-        return $privateKey->len() === 32;
+        if ($privateKey->len() !== 32) {
+            throw new ECDSA_Exception('Private key for Secp256k1 must be precisely 32 bytes');
+        }
+
+        $prvInteger = new BigInteger($privateKey);
+        if ($prvInteger->cmp(1) < 0) {
+            throw new ECDSA_Exception('Private key integer value is not positive');
+        }
+
+        if ($prvInteger->cmp($this->order) > 0) {
+            throw new ECDSA_Exception('Private key integer value exceeds Secp256k1::ORDER');
+        }
+
+        return true;
     }
 
     /**
