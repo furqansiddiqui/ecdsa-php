@@ -17,6 +17,8 @@ namespace FurqanSiddiqui\ECDSA;
 use Comely\Buffer\AbstractByteArray;
 use FurqanSiddiqui\ECDSA\ECC\EllipticCurveInterface;
 use FurqanSiddiqui\ECDSA\ECC\PublicKey;
+use FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception;
+use FurqanSiddiqui\ECDSA\Exception\KeyPairException;
 use FurqanSiddiqui\ECDSA\Exception\SignatureException;
 use FurqanSiddiqui\ECDSA\Signature\Signature;
 
@@ -32,11 +34,17 @@ class KeyPair
     /**
      * @param \FurqanSiddiqui\ECDSA\ECC\EllipticCurveInterface $ecc
      * @param \Comely\Buffer\AbstractByteArray $private
+     * @throws \FurqanSiddiqui\ECDSA\Exception\KeyPairException
      */
     public function __construct(
         public readonly EllipticCurveInterface $ecc,
         public readonly AbstractByteArray      $private)
     {
+        try {
+            $this->ecc->validatePrivateKey($this->private);
+        } catch (ECDSA_Exception $e) {
+            throw new KeyPairException($e->getMessage());
+        }
     }
 
     /**

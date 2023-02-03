@@ -26,6 +26,7 @@ interface EllipticCurveInterface
     /**
      * @param \Comely\Buffer\AbstractByteArray $privateKey
      * @return bool
+     * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception
      */
     public function validatePrivateKey(AbstractByteArray $privateKey): bool;
 
