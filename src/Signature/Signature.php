@@ -174,13 +174,14 @@ class Signature implements SignatureInterface
      * -2 = Signature coordinate S does not match
      * -1 = Signature coordinate R does not match
      * @param \FurqanSiddiqui\ECDSA\Signature\Signature $sig2
+     * @param bool $matchRecoveryIds
      * @return int
      */
-    public function compare(Signature $sig2): int
+    public function compare(Signature $sig2, bool $matchRecoveryIds = true): int
     {
         if (hash_equals($this->r->toBase16(false), $sig2->r->toBase16(false))) {
             if (hash_equals($this->s->toBase16(false), $sig2->s->toBase16(false))) {
-                if ($this->recoveryId === $sig2->recoveryId) {
+                if (!$matchRecoveryIds || $this->recoveryId === $sig2->recoveryId) {
                     return 0;
                 }
 
