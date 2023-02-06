@@ -32,4 +32,15 @@ interface SignatureInterface
      * @return \Comely\Buffer\AbstractByteArray
      */
     public function getDER(): AbstractByteArray;
+
+    /**
+     * @param \Comely\Buffer\AbstractByteArray $signature
+     * @return static
+     */
+    public static function fromCompact(AbstractByteArray $signature): static;
+
+    /**
+     * @return \Comely\Buffer\AbstractByteArray
+     */
+    public function getCompact(): AbstractByteArray;
 }
