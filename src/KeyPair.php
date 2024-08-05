@@ -14,7 +14,7 @@ declare(strict_types=1);
 
 namespace FurqanSiddiqui\ECDSA;
 
-use Comely\Buffer\AbstractByteArray;
+use Charcoal\Buffers\AbstractByteArray;
 use FurqanSiddiqui\ECDSA\ECC\EllipticCurveInterface;
 use FurqanSiddiqui\ECDSA\ECC\PublicKey;
 use FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception;
@@ -33,12 +33,14 @@ class KeyPair
 
     /**
      * @param \FurqanSiddiqui\ECDSA\ECC\EllipticCurveInterface $ecc
-     * @param \Comely\Buffer\AbstractByteArray $private
+     * @param \Charcoal\Buffers\AbstractByteArray $private
      * @throws \FurqanSiddiqui\ECDSA\Exception\KeyPairException
      */
     public function __construct(
         public readonly EllipticCurveInterface $ecc,
-        public readonly AbstractByteArray      $private)
+        #[\SensitiveParameter]
+        public readonly AbstractByteArray      $private
+    )
     {
         try {
             $this->ecc->validatePrivateKey($this->private);
@@ -69,8 +71,8 @@ class KeyPair
     }
 
     /**
-     * @param \Comely\Buffer\AbstractByteArray $msgHash
-     * @param \Comely\Buffer\AbstractByteArray|null $nonceK
+     * @param \Charcoal\Buffers\AbstractByteArray $msgHash
+     * @param \Charcoal\Buffers\AbstractByteArray|null $nonceK
      * @return \FurqanSiddiqui\ECDSA\Signature\Signature
      */
     public function sign(AbstractByteArray $msgHash, ?AbstractByteArray $nonceK = null): Signature
@@ -79,8 +81,8 @@ class KeyPair
     }
 
     /**
-     * @param \Comely\Buffer\AbstractByteArray $msgHash
-     * @param \Comely\Buffer\AbstractByteArray|null $nonceK
+     * @param \Charcoal\Buffers\AbstractByteArray $msgHash
+     * @param \Charcoal\Buffers\AbstractByteArray|null $nonceK
      * @return \FurqanSiddiqui\ECDSA\Signature\Signature
      * @throws \FurqanSiddiqui\ECDSA\Exception\SignatureException
      */
@@ -96,7 +98,7 @@ class KeyPair
 
     /**
      * @param \FurqanSiddiqui\ECDSA\Signature\Signature $sig
-     * @param \Comely\Buffer\AbstractByteArray $msgHash
+     * @param \Charcoal\Buffers\AbstractByteArray $msgHash
      * @return int
      * @throws \FurqanSiddiqui\ECDSA\Exception\SignatureException
      */
@@ -117,7 +119,7 @@ class KeyPair
 
     /**
      * @param \FurqanSiddiqui\ECDSA\Signature\Signature $sig
-     * @param \Comely\Buffer\AbstractByteArray $msgHash
+     * @param \Charcoal\Buffers\AbstractByteArray $msgHash
      * @return bool
      */
     public function verify(Signature $sig, AbstractByteArray $msgHash): bool
@@ -127,7 +129,7 @@ class KeyPair
 
     /**
      * @param \FurqanSiddiqui\ECDSA\Signature\Signature $sig
-     * @param \Comely\Buffer\AbstractByteArray $msgHash
+     * @param \Charcoal\Buffers\AbstractByteArray $msgHash
      * @param int|null $recId
      * @return bool
      */

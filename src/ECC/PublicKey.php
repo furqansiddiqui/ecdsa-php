@@ -14,21 +14,21 @@ declare(strict_types=1);
 
 namespace FurqanSiddiqui\ECDSA\ECC;
 
-use Comely\Buffer\AbstractByteArray;
-use Comely\Buffer\Buffer;
+use Charcoal\Buffers\AbstractByteArray;
+use Charcoal\Buffers\Buffer;
 use FurqanSiddiqui\ECDSA\Exception\KeyPairException;
 
 /**
  * Class PublicKey
  * @package FurqanSiddiqui\ECDSA
  */
-class PublicKey
+readonly class PublicKey
 {
     /** @var string */
-    public readonly string $prefix;
+    public string $prefix;
 
     /**
-     * @param \Comely\Buffer\AbstractByteArray $publicKey
+     * @param \Charcoal\Buffers\AbstractByteArray $publicKey
      * @return static
      * @throws \FurqanSiddiqui\ECDSA\Exception\KeyPairException
      */
@@ -52,9 +52,9 @@ class PublicKey
      * @param string|null $compressedPrefix
      */
     public function __construct(
-        public readonly string $x,
-        public readonly string $y,
-        ?string                $compressedPrefix = null,
+        public string $x,
+        public string $y,
+        ?string       $compressedPrefix = null,
     )
     {
         if (!$compressedPrefix) {
@@ -65,17 +65,17 @@ class PublicKey
     }
 
     /**
-     * @return \Comely\Buffer\Buffer
+     * @return \Charcoal\Buffers\AbstractByteArray
      */
-    public function getUnCompressed(): Buffer
+    public function getUnCompressed(): AbstractByteArray
     {
         return (new Buffer(hex2bin("04" . $this->x . $this->y)))->readOnly();
     }
 
     /**
-     * @return \Comely\Buffer\Buffer
+     * @return \Charcoal\Buffers\AbstractByteArray
      */
-    public function getCompressed(): Buffer
+    public function getCompressed(): AbstractByteArray
     {
         return (new Buffer(hex2bin($this->prefix . $this->x)))->readOnly();
     }

@@ -14,10 +14,9 @@ declare(strict_types=1);
 
 namespace FurqanSiddiqui\ECDSA\Signature;
 
-use Comely\Buffer\AbstractByteArray;
-use Comely\Buffer\Buffer;
-use Comely\Buffer\Bytes32;
-use Comely\Buffer\Exception\ByteReaderUnderflowException;
+use Charcoal\Buffers\AbstractByteArray;
+use Charcoal\Buffers\Buffer;
+use Charcoal\Buffers\Frames\Bytes32;
 use FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception;
 use FurqanSiddiqui\ECDSA\Exception\SignatureException;
 
@@ -25,17 +24,17 @@ use FurqanSiddiqui\ECDSA\Exception\SignatureException;
  * Class Signature
  * @package FurqanSiddiqui\ECDSA\Signature
  */
-class Signature implements SignatureInterface
+readonly class Signature implements SignatureInterface
 {
     /**
-     * @param \Comely\Buffer\AbstractByteArray $r
-     * @param \Comely\Buffer\AbstractByteArray $s
+     * @param \Charcoal\Buffers\AbstractByteArray $r
+     * @param \Charcoal\Buffers\AbstractByteArray $s
      * @param int $recoveryId
      */
     public function __construct(
-        public readonly AbstractByteArray $r,
-        public readonly AbstractByteArray $s,
-        public readonly int               $recoveryId = -1)
+        public AbstractByteArray $r,
+        public AbstractByteArray $s,
+        public int               $recoveryId = -1)
     {
     }
 
@@ -45,16 +44,15 @@ class Signature implements SignatureInterface
     public function __debugInfo(): array
     {
         return [
-            "r" => $this->r->toBase16(true),
-            "s" => $this->s->toBase16(true),
+            "r" => "0x" . $this->r->toBase16(),
+            "s" => "0x" . $this->s->toBase16(),
             "v" => $this->recoveryId > -1 ? $this->recoveryId : null
         ];
     }
 
     /**
-     * @param \Comely\Buffer\AbstractByteArray $signature
+     * @param \Charcoal\Buffers\AbstractByteArray $signature
      * @return static
-     * @throws \Comely\Buffer\Exception\ByteReaderUnderflowException
      * @throws \FurqanSiddiqui\ECDSA\Exception\SignatureException
      */
     public static function fromCompact(AbstractByteArray $signature): static
@@ -73,7 +71,7 @@ class Signature implements SignatureInterface
     }
 
     /**
-     * @param \Comely\Buffer\AbstractByteArray $signature
+     * @param \Charcoal\Buffers\AbstractByteArray $signature
      * @return static
      * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception
      * @throws \FurqanSiddiqui\ECDSA\Exception\SignatureException
@@ -107,7 +105,7 @@ class Signature implements SignatureInterface
             }
 
             $s = ltrim($parse->next($parse->readUInt8()), "\0");
-        } catch (ByteReaderUnderflowException) {
+        } catch (\UnderflowException) {
             throw new SignatureException('Ran out of bytes while parsing DER signature');
         }
 
@@ -119,7 +117,7 @@ class Signature implements SignatureInterface
     }
 
     /**
-     * @return \Comely\Buffer\AbstractByteArray
+     * @return \Charcoal\Buffers\AbstractByteArray
      */
     public function getCompact(): AbstractByteArray
     {
@@ -128,7 +126,7 @@ class Signature implements SignatureInterface
 
     /**
      * @param int $paddedIntegerSize
-     * @return \Comely\Buffer\AbstractByteArray
+     * @return \Charcoal\Buffers\AbstractByteArray
      */
     public function getDER(int $paddedIntegerSize = 0): AbstractByteArray
     {
@@ -179,8 +177,8 @@ class Signature implements SignatureInterface
      */
     public function compare(Signature $sig2, bool $matchRecoveryIds = true): int
     {
-        if (hash_equals($this->r->toBase16(false), $sig2->r->toBase16(false))) {
-            if (hash_equals($this->s->toBase16(false), $sig2->s->toBase16(false))) {
+        if (hash_equals($this->r->toBase16(), $sig2->r->toBase16())) {
+            if (hash_equals($this->s->toBase16(), $sig2->s->toBase16())) {
                 if (!$matchRecoveryIds || $this->recoveryId === $sig2->recoveryId) {
                     return 0;
                 }

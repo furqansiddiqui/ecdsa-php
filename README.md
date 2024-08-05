@@ -14,7 +14,7 @@ Easy interface and to the point API for following curves and features:
 
 ## Prerequisites
 
-* PHP ^8.1
+* PHP ^8.2
 * ext-gmp
 * ext-curl (for [furqansiddiqui/secp256k1-rpc](https://github.com/furqansiddiqui/secp256k1-rpc))
 
@@ -23,18 +23,6 @@ Easy interface and to the point API for following curves and features:
 `composer require furqansiddiqui/ecdsa-php`
 
 # Documentation
-
-## `Buffer` , `Bytes32`, `AbstractByteArray`
-
-Uses [comely-io/buffer-php](https://github.com/comely-io/buffer-php) for data handling.
-
-```php
-// Create byte array from Base16/Hexadecimal string
-$buffer = Buffer::fromBase16("hex-string"); 
-
-// Serialize bytes in buffer to Hexadecimal
-$buffer->toBase16();
-```
 
 ## KeyPair
 

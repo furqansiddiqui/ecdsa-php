@@ -14,7 +14,7 @@ declare(strict_types=1);
 
 namespace FurqanSiddiqui\ECDSA\Signature;
 
-use Comely\Buffer\AbstractByteArray;
+use Charcoal\Buffers\AbstractByteArray;
 
 /**
  * Interface SignatureInterface
@@ -23,24 +23,24 @@ use Comely\Buffer\AbstractByteArray;
 interface SignatureInterface
 {
     /**
-     * @param \Comely\Buffer\AbstractByteArray $signature
+     * @param \Charcoal\Buffers\AbstractByteArray $signature
      * @return static
      */
     public static function fromDER(AbstractByteArray $signature): static;
 
     /**
-     * @return \Comely\Buffer\AbstractByteArray
+     * @return \Charcoal\Buffers\AbstractByteArray
      */
     public function getDER(): AbstractByteArray;
 
     /**
-     * @param \Comely\Buffer\AbstractByteArray $signature
+     * @param \Charcoal\Buffers\AbstractByteArray $signature
      * @return static
      */
     public static function fromCompact(AbstractByteArray $signature): static;
 
     /**
-     * @return \Comely\Buffer\AbstractByteArray
+     * @return \Charcoal\Buffers\AbstractByteArray
      */
     public function getCompact(): AbstractByteArray;
 }

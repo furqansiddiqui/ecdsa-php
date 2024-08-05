@@ -12,7 +12,8 @@
 
 namespace FurqanSiddiqui\ECDSA\ECC;
 
-use Comely\Buffer\AbstractByteArray;
+use Charcoal\Buffers\AbstractByteArray;
+use SensitiveParameter;
 
 /**
  * Class AbstractGMPCurve
@@ -82,13 +83,13 @@ abstract class AbstractGMPCurve implements EllipticCurveInterface
     }
 
     /**
-     * @param \Comely\Buffer\AbstractByteArray $privateKey
+     * @param \Charcoal\Buffers\AbstractByteArray $privateKey
      * @return \FurqanSiddiqui\ECDSA\ECC\PublicKey
      */
-    abstract public function generatePublicKey(AbstractByteArray $privateKey): PublicKey;
+    abstract public function generatePublicKey(#[SensitiveParameter] AbstractByteArray $privateKey): PublicKey;
 
     /**
-     * @param \Comely\Buffer\AbstractByteArray $compressed
+     * @param \Charcoal\Buffers\AbstractByteArray $compressed
      * @return \FurqanSiddiqui\ECDSA\ECC\PublicKey
      */
     abstract public function getPublicKeyFromCompressed(AbstractByteArray $compressed): PublicKey;

@@ -14,8 +14,8 @@ declare(strict_types=1);
 
 namespace FurqanSiddiqui\ECDSA\Signature;
 
-use Comely\Buffer\AbstractByteArray;
-use Comely\Buffer\Buffer;
+use Charcoal\Buffers\AbstractByteArray;
+use Charcoal\Buffers\Buffer;
 use FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception;
 
 /**
@@ -69,7 +69,7 @@ class Rfc6979
 
     /**
      * @param \GMP $q
-     * @return \Comely\Buffer\AbstractByteArray
+     * @return \Charcoal\Buffers\AbstractByteArray
      * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception
      */
     public function generateK(\GMP $q): AbstractByteArray

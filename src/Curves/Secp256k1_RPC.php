@@ -14,14 +14,15 @@ declare(strict_types=1);
 
 namespace FurqanSiddiqui\ECDSA\Curves;
 
-use Comely\Buffer\AbstractByteArray;
-use Comely\Buffer\Buffer;
+use Charcoal\Buffers\AbstractByteArray;
+use Charcoal\Buffers\Buffer;
 use FurqanSiddiqui\ECDSA\ECC\EllipticCurveInterface;
 use FurqanSiddiqui\ECDSA\ECC\PublicKey;
 use FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception;
 use FurqanSiddiqui\ECDSA\Exception\ECDSA_RPC_Exception;
 use FurqanSiddiqui\ECDSA\Exception\SignatureException;
 use FurqanSiddiqui\ECDSA\Signature\Signature;
+use SensitiveParameter;
 
 /**
  * Class Secp256k1_RPC
@@ -68,26 +69,26 @@ class Secp256k1_RPC implements EllipticCurveInterface
     }
 
     /**
-     * @param \Comely\Buffer\AbstractByteArray $privateKey
+     * @param \Charcoal\Buffers\AbstractByteArray $privateKey
      * @return bool
      * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception
      * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_RPC_Exception
      */
-    public function validatePrivateKey(AbstractByteArray $privateKey): bool
+    public function validatePrivateKey(#[SensitiveParameter] AbstractByteArray $privateKey): bool
     {
-        $result = $this->sendCurlRequest("validatePrivateKey", [$privateKey->toBase16(false)]);
+        $result = $this->sendCurlRequest("validatePrivateKey", [$privateKey->toBase16()]);
         return $result === true;
     }
 
     /**
-     * @param \Comely\Buffer\AbstractByteArray $privateKey
+     * @param \Charcoal\Buffers\AbstractByteArray $privateKey
      * @return \FurqanSiddiqui\ECDSA\ECC\PublicKey
      * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception
      * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_RPC_Exception
      */
-    public function generatePublicKey(AbstractByteArray $privateKey): PublicKey
+    public function generatePublicKey(#[SensitiveParameter] AbstractByteArray $privateKey): PublicKey
     {
-        $result = $this->sendCurlRequest("createPublicKey", [$privateKey->toBase16(false), true]);
+        $result = $this->sendCurlRequest("createPublicKey", [$privateKey->toBase16(), true]);
         if (!is_array($result) || !isset($result["compressed"]) || !isset($result["unCompressed"])) {
             throw new ECDSA_Exception('Bad response structure from RPC createPublicKey method');
         }
@@ -100,31 +101,39 @@ class Secp256k1_RPC implements EllipticCurveInterface
     }
 
     /**
-     * @param \Comely\Buffer\AbstractByteArray $privateKey
-     * @param \Comely\Buffer\AbstractByteArray $msgHash
-     * @param \Comely\Buffer\AbstractByteArray|null $randomK
+     * @param \Charcoal\Buffers\AbstractByteArray $privateKey
+     * @param \Charcoal\Buffers\AbstractByteArray $msgHash
+     * @param \Charcoal\Buffers\AbstractByteArray|null $randomK
      * @return \FurqanSiddiqui\ECDSA\Signature\Signature
-     * @throws \Comely\Buffer\Exception\ByteReaderUnderflowException
      * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception
      * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_RPC_Exception
      * @throws \FurqanSiddiqui\ECDSA\Exception\SignatureException
      */
-    public function sign(AbstractByteArray $privateKey, AbstractByteArray $msgHash, ?AbstractByteArray $randomK = null): Signature
+    public function sign(
+        #[SensitiveParameter] AbstractByteArray $privateKey,
+        AbstractByteArray                       $msgHash,
+        ?AbstractByteArray                      $randomK = null
+    ): Signature
     {
         return Signature::fromCompact($this->ecdsaSign(true, $privateKey, $msgHash, $randomK));
     }
 
     /**
      * @param bool $recoverable
-     * @param \Comely\Buffer\AbstractByteArray $privateKey
-     * @param \Comely\Buffer\AbstractByteArray $msgHash
-     * @param \Comely\Buffer\AbstractByteArray|null $randomK
-     * @return \Comely\Buffer\Buffer
+     * @param \Charcoal\Buffers\AbstractByteArray $privateKey
+     * @param \Charcoal\Buffers\AbstractByteArray $msgHash
+     * @param \Charcoal\Buffers\AbstractByteArray|null $randomK
+     * @return \Charcoal\Buffers\Buffer
      * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception
      * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_RPC_Exception
      * @throws \FurqanSiddiqui\ECDSA\Exception\SignatureException
      */
-    private function ecdsaSign(bool $recoverable, AbstractByteArray $privateKey, AbstractByteArray $msgHash, ?AbstractByteArray $randomK = null): Buffer
+    private function ecdsaSign(
+        bool                                     $recoverable,
+        #[\SensitiveParameter] AbstractByteArray $privateKey,
+        AbstractByteArray                        $msgHash,
+        ?AbstractByteArray                       $randomK = null
+    ): Buffer
     {
         if ($privateKey->len() !== 32) {
             throw new SignatureException('Private key must be of 32 bytes');
@@ -132,7 +141,7 @@ class Secp256k1_RPC implements EllipticCurveInterface
             throw new SignatureException('Message hash must be 32 bytes');
         }
 
-        $result = $this->sendCurlRequest("ecdsaSign", [$privateKey->toBase16(false), $msgHash->toBase16(false), $recoverable, $randomK]);
+        $result = $this->sendCurlRequest("ecdsaSign", [$privateKey->toBase16(), $msgHash->toBase16(), $recoverable, $randomK]);
         if (!is_string($result)) {
             throw new ECDSA_RPC_Exception(sprintf('Expected "string" from "ecdsaSign" call, got "%s"', gettype($result)));
         }
@@ -143,7 +152,7 @@ class Secp256k1_RPC implements EllipticCurveInterface
     /**
      * @param \FurqanSiddiqui\ECDSA\ECC\PublicKey $publicKey
      * @param \FurqanSiddiqui\ECDSA\Signature\Signature $signature
-     * @param \Comely\Buffer\AbstractByteArray $msgHash
+     * @param \Charcoal\Buffers\AbstractByteArray $msgHash
      * @return bool
      * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception
      * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_RPC_Exception
@@ -158,7 +167,7 @@ class Secp256k1_RPC implements EllipticCurveInterface
         $result = $this->sendCurlRequest("ecdsaVerify", [
             $publicKey->getUnCompressed()->toBase16(),
             $signature->getDER()->toBase16(),
-            $msgHash->toBase16(false)
+            $msgHash->toBase16()
         ]);
 
         if (!is_bool($result)) {
@@ -170,7 +179,7 @@ class Secp256k1_RPC implements EllipticCurveInterface
 
     /**
      * @param \FurqanSiddiqui\ECDSA\Signature\Signature $signature
-     * @param \Comely\Buffer\AbstractByteArray $msgHash
+     * @param \Charcoal\Buffers\AbstractByteArray $msgHash
      * @param int|null $recId
      * @return \FurqanSiddiqui\ECDSA\ECC\PublicKey
      * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception
@@ -191,7 +200,7 @@ class Secp256k1_RPC implements EllipticCurveInterface
             throw new SignatureException('Message hash must be 32 bytes');
         }
 
-        $result = $this->sendCurlRequest("ecdsaRecover", [$signature->getCompact()->toBase16(false), $msgHash->toBase16(false)]);
+        $result = $this->sendCurlRequest("ecdsaRecover", [$signature->getCompact()->toBase16(), $msgHash->toBase16()]);
         if (!is_array($result) || !isset($result["compressed"]) || !isset($result["unCompressed"])) {
             throw new ECDSA_Exception('Bad response structure from RPC createPublicKey method');
         }

@@ -14,7 +14,7 @@ declare(strict_types=1);
 
 namespace FurqanSiddiqui\ECDSA\ECC;
 
-use Comely\Buffer\AbstractByteArray;
+use Charcoal\Buffers\AbstractByteArray;
 use FurqanSiddiqui\ECDSA\Signature\Signature;
 
 /**
@@ -24,37 +24,37 @@ use FurqanSiddiqui\ECDSA\Signature\Signature;
 interface EllipticCurveInterface
 {
     /**
-     * @param \Comely\Buffer\AbstractByteArray $privateKey
+     * @param \Charcoal\Buffers\AbstractByteArray $privateKey
      * @return bool
      * @throws \FurqanSiddiqui\ECDSA\Exception\ECDSA_Exception
      */
-    public function validatePrivateKey(AbstractByteArray $privateKey): bool;
+    public function validatePrivateKey(#[\SensitiveParameter] AbstractByteArray $privateKey): bool;
 
     /**
-     * @param \Comely\Buffer\AbstractByteArray $privateKey
+     * @param \Charcoal\Buffers\AbstractByteArray $privateKey
      * @return \FurqanSiddiqui\ECDSA\ECC\PublicKey
      */
-    public function generatePublicKey(AbstractByteArray $privateKey): PublicKey;
+    public function generatePublicKey(#[\SensitiveParameter] AbstractByteArray $privateKey): PublicKey;
 
     /**
-     * @param \Comely\Buffer\AbstractByteArray $privateKey
-     * @param \Comely\Buffer\AbstractByteArray $msgHash
-     * @param \Comely\Buffer\AbstractByteArray|null $randomK
+     * @param \Charcoal\Buffers\AbstractByteArray $privateKey
+     * @param \Charcoal\Buffers\AbstractByteArray $msgHash
+     * @param \Charcoal\Buffers\AbstractByteArray|null $randomK
      * @return \FurqanSiddiqui\ECDSA\Signature\Signature
      */
-    public function sign(AbstractByteArray $privateKey, AbstractByteArray $msgHash, ?AbstractByteArray $randomK = null): Signature;
+    public function sign(#[\SensitiveParameter] AbstractByteArray $privateKey, AbstractByteArray $msgHash, ?AbstractByteArray $randomK = null): Signature;
 
     /**
      * @param \FurqanSiddiqui\ECDSA\ECC\PublicKey $publicKey
      * @param \FurqanSiddiqui\ECDSA\Signature\Signature $signature
-     * @param \Comely\Buffer\AbstractByteArray $msgHash
+     * @param \Charcoal\Buffers\AbstractByteArray $msgHash
      * @return bool
      */
     public function verify(PublicKey $publicKey, Signature $signature, AbstractByteArray $msgHash): bool;
 
     /**
      * @param \FurqanSiddiqui\ECDSA\Signature\Signature $signature
-     * @param \Comely\Buffer\AbstractByteArray $msgHash
+     * @param \Charcoal\Buffers\AbstractByteArray $msgHash
      * @param int|null $recId
      * @return \FurqanSiddiqui\ECDSA\ECC\PublicKey
      */
