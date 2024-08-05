@@ -29,7 +29,7 @@ class ECDSA_RPC_Exception extends \Exception
      */
     public static function CurlError(\CurlHandle $ch): static
     {
-        $ex = new static();
+        $ex = new static(curl_error($ch));
         $ex->curlHandle = $ch;
         return $ex;
     }

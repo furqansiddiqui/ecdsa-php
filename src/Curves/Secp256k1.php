@@ -53,7 +53,7 @@ class Secp256k1 extends AbstractGMPCurve
             throw new ECDSA_Exception('Private key for Secp256k1 must be precisely 32 bytes');
         }
 
-        $prvInteger = new BigInteger($privateKey);
+        $prvInteger = BigInteger::fromBuffer($privateKey);
         if ($prvInteger->cmp(1) < 0) {
             throw new ECDSA_Exception('Private key integer value is not positive');
         }
